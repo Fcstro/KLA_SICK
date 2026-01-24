@@ -67,6 +67,8 @@ def select_character():
 
 @app.route("/update-location", methods=["POST"])
 def update_location():
+    global current_enemy
+    
     lat, lon = request.json["lat"], request.json["lon"]
     last = player["last_location"]
     player["last_location"] = (lat, lon)
@@ -98,6 +100,8 @@ def update_location():
 
 @app.route("/player-attack", methods=["POST"])
 def player_attack():
+    global current_enemy
+    
     if not current_enemy:
         return jsonify({"error": "No enemy to attack"})
     
