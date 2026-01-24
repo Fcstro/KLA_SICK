@@ -288,6 +288,11 @@ body {
     border-left: 4px solid #2196F3;
 }
 
+.log-entry.debug {
+    border-left: 4px solid #FF9800;
+    background: rgba(255, 152, 0, 0.1);
+}
+
 .game-controls {
     position: absolute;
     bottom: 20px;
@@ -332,6 +337,27 @@ body {
     padding: 15px;
     border-radius: 10px;
     font-size: 1.1rem;
+}
+
+.debug-controls {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.btn-debug {
+    background: rgba(255, 165, 0, 0.8);
+    color: white;
+    border: 1px solid rgba(255, 165, 0, 0.5);
+    padding: 8px 16px;
+    border-radius: 15px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-debug:hover {
+    background: rgba(255, 165, 0, 1);
+    transform: translateY(-1px);
 }
 
 /* Responsive Design */

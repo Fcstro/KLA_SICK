@@ -35,6 +35,9 @@ class GamePage {
                     <div id="status-message" class="status-message">
                         📍 Move around to find enemies...
                     </div>
+                    <div class="debug-controls">
+                        <button class="btn-debug" onclick="gamePage.spawnTestEnemy()">🐉 Test Dragon (100%)</button>
+                    </div>
                 </div>
             </div>
         `;
@@ -198,6 +201,21 @@ class GamePage {
     getXPForEnemy(enemyType) {
         const xpValues = { class1: 10, class2: 25, class3: 50 };
         return xpValues[enemyType] || 10;
+    }
+
+    spawnTestEnemy() {
+        // For testing - always spawn class3 enemy (100% for testing)
+        const enemyType = 'class3';
+        console.log(`🐉 DEBUG: Spawning test enemy - ${this.getEnemyName(enemyType)}`);
+        this.spawnEnemy(enemyType);
+        
+        // Add log entry
+        const gameLog = document.getElementById('game-log');
+        gameLog.innerHTML = `
+            <div class="log-entry debug">
+                🐉 DEBUG: Test enemy spawned! (${this.getEnemyName(enemyType)})
+            </div>
+        ` + gameLog.innerHTML;
     }
 
     cleanup() {
