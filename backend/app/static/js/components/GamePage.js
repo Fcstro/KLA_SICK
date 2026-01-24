@@ -103,17 +103,23 @@ class GamePage {
         const statusMessage = document.getElementById('status-message');
         
         enemyContainer.innerHTML = `
-            <div class="enemy">
-                <div class="enemy-icon">${this.getEnemyIcon(enemyType)}</div>
+            <div class="enemy ${enemyType}">
+                <div class="enemy-visual">
+                    <img src="/static/assets/enemies/${enemyType}.png" 
+                         alt="${enemyType} enemy" 
+                         class="enemy-image"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div class="enemy-icon-fallback">${this.getEnemyIcon(enemyType)}</div>
+                </div>
                 <div class="enemy-info">
-                    <h3>${enemyType.toUpperCase()}</h3>
+                    <h3>${this.getEnemyName(enemyType)}</h3>
                     <p>Wild enemy appeared!</p>
                 </div>
             </div>
         `;
         
         combatControls.style.display = 'flex';
-        statusMessage.textContent = `⚔️ A ${enemyType} appeared!`;
+        statusMessage.textContent = `⚔️ A ${this.getEnemyName(enemyType)} appeared!`;
     }
 
     getEnemyIcon(enemyType) {
@@ -123,6 +129,15 @@ class GamePage {
             class3: '🐉'
         };
         return icons[enemyType] || '👾';
+    }
+
+    getEnemyName(enemyType) {
+        const names = {
+            class1: 'Goblin',
+            class2: 'Orc',
+            class3: 'Dragon'
+        };
+        return names[enemyType] || 'Monster';
     }
 
     async attack(enemy) {
