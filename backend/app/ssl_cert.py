@@ -1,0 +1,3 @@
+import ssl
+context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+context.load_default_certs()

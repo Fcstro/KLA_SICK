@@ -1,0 +1,27 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebAR RPG</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<h2>WebAR RPG</h2>
+
+<select id="char">
+  <option value="warrior">Warrior</option>
+  <option value="mage">Mage</option>
+  <option value="archer">Archer</option>
+  <option value="healer">Healer</option>
+  <option value="rogue">Rogue</option>
+</select>
+<button onclick="selectChar()">Select</button>
+
+<video id="cam" autoplay playsinline></video>
+<div id="enemy"></div>
+<pre id="log"></pre>
+
+<script src="/static/js/game.js"></script>
+</body>
+</html>
