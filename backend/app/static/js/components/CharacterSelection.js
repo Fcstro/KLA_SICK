@@ -88,5 +88,3 @@ class CharacterSelection {
         }
     }
 }
-
-const characterSelection = new CharacterSelection();

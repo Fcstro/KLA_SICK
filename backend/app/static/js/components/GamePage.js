@@ -317,5 +317,3 @@ class GamePage {
         }
     }
 }
-
-const gamePage = new GamePage();
