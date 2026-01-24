@@ -100,18 +100,26 @@ class GamePage {
             
             const data = await response.json();
             if (data.spawn) {
-                this.spawnEnemy(data.enemy);
+                this.spawnEnemy(data.enemy, data.enemy_stats);
             }
         } catch (error) {
             console.error('Error updating location:', error);
         }
     }
 
-    spawnEnemy(enemyType) {
+    spawnEnemy(enemyType, enemyStats = null) {
         this.currentEnemy = enemyType;
         const enemyContainer = document.getElementById('enemy-container');
         const combatControls = document.getElementById('combat-controls');
         const statusMessage = document.getElementById('status-message');
+        
+        // Use provided stats or default stats
+        const stats = enemyStats || {
+            hp: this.getDefaultEnemyHP(enemyType),
+            max_hp: this.getDefaultEnemyHP(enemyType),
+            atk: this.getDefaultEnemyATK(enemyType),
+            name: this.getEnemyName(enemyType)
+        };
         
         enemyContainer.innerHTML = `
             <div class="enemy ${enemyType}">
@@ -123,12 +131,12 @@ class GamePage {
                     <div class="enemy-icon-fallback">${this.getEnemyIcon(enemyType)}</div>
                 </div>
                 <div class="enemy-info">
-                    <h3>${this.getEnemyName(enemyType)}</h3>
+                    <h3>${stats.name}</h3>
                     <div class="health-bar-container">
                         <div class="health-bar enemy-health-bar">
                             <div class="health-fill enemy-health-fill" style="width: 100%"></div>
                         </div>
-                        <span class="health-text enemy-health-text">HP: --/--</span>
+                        <span class="health-text enemy-health-text">HP: ${stats.hp}/${stats.max_hp}</span>
                     </div>
                     <p>Wild enemy appeared!</p>
                 </div>
@@ -136,7 +144,7 @@ class GamePage {
         `;
         
         combatControls.style.display = 'flex';
-        statusMessage.textContent = `⚔️ A ${this.getEnemyName(enemyType)} appeared!`;
+        statusMessage.textContent = `⚔️ A ${stats.name} appeared!`;
     }
 
     getEnemyIcon(enemyType) {
@@ -155,6 +163,24 @@ class GamePage {
             class3: 'Dragon'
         };
         return names[enemyType] || 'Monster';
+    }
+
+    getDefaultEnemyHP(enemyType) {
+        const hp = {
+            class1: 30,
+            class2: 50,
+            class3: 100
+        };
+        return hp[enemyType] || 30;
+    }
+
+    getDefaultEnemyATK(enemyType) {
+        const atk = {
+            class1: 5,
+            class2: 10,
+            class3: 15
+        };
+        return atk[enemyType] || 5;
     }
 
     async attack(enemy) {
@@ -296,14 +322,21 @@ class GamePage {
     spawnTestEnemy() {
         // For testing - always spawn class3 enemy (100% for testing)
         const enemyType = 'class3';
-        console.log(`🐉 DEBUG: Spawning test enemy - ${this.getEnemyName(enemyType)}`);
-        this.spawnEnemy(enemyType);
+        const enemyStats = {
+            hp: this.getDefaultEnemyHP(enemyType),
+            max_hp: this.getDefaultEnemyHP(enemyType),
+            atk: this.getDefaultEnemyATK(enemyType),
+            name: this.getEnemyName(enemyType)
+        };
+        
+        console.log(`🐉 DEBUG: Spawning test enemy - ${enemyStats.name} with HP: ${enemyStats.hp}/${enemyStats.max_hp}`);
+        this.spawnEnemy(enemyType, enemyStats);
         
         // Add log entry
         const gameLog = document.getElementById('game-log');
         gameLog.innerHTML = `
             <div class="log-entry debug">
-                🐉 DEBUG: Test enemy spawned! (${this.getEnemyName(enemyType)})
+                🐉 DEBUG: Test enemy spawned! (${enemyStats.name} - HP: ${enemyStats.hp}/${enemyStats.max_hp})
             </div>
         ` + gameLog.innerHTML;
     }
