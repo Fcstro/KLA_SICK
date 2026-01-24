@@ -2,16 +2,26 @@
 class Router {
     constructor() {
         this.routes = {
-            '/': () => landingPage.render(),
-            '/character': () => characterSelection.render(),
-            '/game': () => gamePage.render()
+            '/': () => {
+                if (window.landingPage) landingPage.render();
+                else console.error('LandingPage not loaded');
+            },
+            '/character': () => {
+                if (window.characterSelection) characterSelection.render();
+                else console.error('CharacterSelection not loaded');
+            },
+            '/game': () => {
+                if (window.gamePage) gamePage.render();
+                else console.error('GamePage not loaded');
+            }
         };
         
         this.currentRoute = '/';
-        this.init();
+        this.routerReady = false;
     }
 
     init() {
+        this.routerReady = true;
         // Handle initial route
         this.handleRoute();
         
@@ -34,6 +44,8 @@ class Router {
     }
 
     handleRoute() {
+        if (!this.routerReady) return;
+        
         const path = window.location.pathname;
         const route = this.routes[path] || this.routes['/'];
         
@@ -43,9 +55,13 @@ class Router {
         }
         
         // Render new page
-        route();
+        try {
+            route();
+        } catch (error) {
+            console.error('Route error:', error);
+        }
     }
 }
 
-// Initialize router
-const router = new Router();
+// Initialize router (but don't start until components are ready)
+let router;
