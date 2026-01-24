@@ -13,8 +13,16 @@ class GamePage {
             <div class="game-container">
                 <div class="game-header">
                     <div class="player-info">
-                        <span class="level">Level: <span id="player-level">1</span></span>
-                        <span class="xp">XP: <span id="player-xp">0</span></span>
+                        <div class="player-stats">
+                            <span class="level">Level: <span id="player-level">1</span></span>
+                            <span class="xp">XP: <span id="player-xp">0</span></span>
+                        </div>
+                        <div class="player-health-container">
+                            <div class="health-bar player-health-bar">
+                                <div class="health-fill player-health-fill" style="width: 100%"></div>
+                            </div>
+                            <span class="health-text player-health-text">HP: --/--</span>
+                        </div>
                     </div>
                     <button class="btn-back" onclick="router.navigate('/')">← Back</button>
                 </div>
@@ -116,6 +124,12 @@ class GamePage {
                 </div>
                 <div class="enemy-info">
                     <h3>${this.getEnemyName(enemyType)}</h3>
+                    <div class="health-bar-container">
+                        <div class="health-bar enemy-health-bar">
+                            <div class="health-fill enemy-health-fill" style="width: 100%"></div>
+                        </div>
+                        <span class="health-text enemy-health-text">HP: --/--</span>
+                    </div>
                     <p>Wild enemy appeared!</p>
                 </div>
             </div>
@@ -147,32 +161,91 @@ class GamePage {
         if (!this.currentEnemy) return;
 
         try {
-            const response = await fetch('/attack', {
+            const response = await fetch('/player-attack', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ enemy: this.currentEnemy })
             });
             
             const data = await response.json();
-            this.updatePlayerStats(data);
-            this.clearEnemy();
             
-            document.getElementById('game-log').innerHTML = `
-                <div class="log-entry success">
-                    ⚔️ Defeated ${this.currentEnemy}! +${this.getXPForEnemy(this.currentEnemy)} XP
-                </div>
-            `;
+            if (data.enemy_defeated) {
+                // Enemy defeated
+                this.updatePlayerStats(data.player);
+                this.clearEnemy();
+                
+                document.getElementById('game-log').innerHTML = `
+                    <div class="log-entry success">
+                        ⚔️ You dealt ${data.player_attack} damage and defeated the ${data.enemy_type}!
+                        +${this.getXPForEnemy(data.enemy_type)} XP
+                    </div>
+                ` + document.getElementById('game-log').innerHTML;
+            } else {
+                // Enemy survived and counter-attacked
+                this.updatePlayerStats({current_hp: data.player_hp, max_hp: this.playerData?.max_hp || 100});
+                this.updateEnemyHealthBar(data.enemy_hp, data.enemy_stats.max_hp);
+                
+                document.getElementById('game-log').innerHTML = `
+                    <div class="log-entry combat">
+                        ⚔️ You dealt ${data.player_attack} damage! Enemy HP: ${data.enemy_hp}/${data.enemy_stats.max_hp}
+                        💥 Enemy counter-attacked for ${data.enemy_attack} damage! Your HP: ${data.player_hp}
+                    </div>
+                ` + document.getElementById('game-log').innerHTML;
+                
+                if (data.player_hp <= 0) {
+                    this.gameOver();
+                }
+            }
         } catch (error) {
             console.error('Error attacking:', error);
         }
     }
 
-    heal() {
-        document.getElementById('game-log').innerHTML = `
-            <div class="log-entry heal">
-                💚 Healed yourself!
-            </div>
-        `;
+    updateEnemyHealthBar(currentHp, maxHp) {
+        const healthPercent = (currentHp / maxHp) * 100;
+        const enemyHealthFill = document.querySelector('.enemy-health-fill');
+        const enemyHealthText = document.querySelector('.enemy-health-text');
+        
+        if (enemyHealthFill && enemyHealthText) {
+            enemyHealthFill.style.width = healthPercent + '%';
+            enemyHealthText.textContent = `HP: ${currentHp}/${maxHp}`;
+            
+            // Change color based on HP level
+            if (healthPercent <= 25) {
+                enemyHealthFill.style.background = 'linear-gradient(90deg, #f44336, #d32f2f)';
+            } else if (healthPercent <= 50) {
+                enemyHealthFill.style.background = 'linear-gradient(90deg, #ff9800, #f57c00)';
+            } else {
+                enemyHealthFill.style.background = 'linear-gradient(90deg, #9c27b0, #7b1fa2)';
+            }
+        }
+    }
+
+    async heal() {
+        try {
+            const response = await fetch('/heal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const data = await response.json();
+            this.updatePlayerStats({current_hp: data.current_hp, max_hp: data.max_hp});
+            
+            document.getElementById('game-log').innerHTML = `
+                <div class="log-entry heal">
+                    💚 Healed for ${data.healed} HP! Current HP: ${data.current_hp}/${data.max_hp}
+                </div>
+            ` + document.getElementById('game-log').innerHTML;
+        } catch (error) {
+            console.error('Error healing:', error);
+        }
+    }
+
+    gameOver() {
+        document.getElementById('status-message').textContent = '💀 You were defeated! Returning to character selection...';
+        setTimeout(() => {
+            router.navigate('/');
+        }, 3000);
     }
 
     clearEnemy() {
@@ -195,6 +268,23 @@ class GamePage {
     updatePlayerStats(data) {
         document.getElementById('player-level').textContent = data.level || 1;
         document.getElementById('player-xp').textContent = data.xp || 0;
+        
+        if (data.current_hp !== undefined && data.max_hp !== undefined) {
+            const healthPercent = (data.current_hp / data.max_hp) * 100;
+            document.querySelector('.player-health-fill').style.width = healthPercent + '%';
+            document.querySelector('.player-health-text').textContent = `HP: ${data.current_hp}/${data.max_hp}`;
+            
+            // Change color based on HP level
+            const healthFill = document.querySelector('.player-health-fill');
+            if (healthPercent <= 25) {
+                healthFill.style.background = 'linear-gradient(90deg, #f44336, #d32f2f)';
+            } else if (healthPercent <= 50) {
+                healthFill.style.background = 'linear-gradient(90deg, #ff9800, #f57c00)';
+            } else {
+                healthFill.style.background = 'linear-gradient(90deg, #4caf50, #388e3c)';
+            }
+        }
+        
         this.playerData = data;
     }
 

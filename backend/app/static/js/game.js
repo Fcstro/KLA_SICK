@@ -1,12 +1,13 @@
 
 // SPA Application Initialization
-document.addEventListener('DOMContentLoaded', function() {
-    // Setup routes
-    router.route('/', characterSelection);
-    router.route('/game', gamePage);
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize page components
+    window.landingPage = new LandingPage();
+    window.characterSelection = new CharacterSelection();
+    window.gamePage = new GamePage();
     
-    // Handle initial route
-    router.handleRoute();
+    // Router will handle initial page load
+    console.log('WebAR RPG initialized');
 });
 
 // Cleanup on page unload

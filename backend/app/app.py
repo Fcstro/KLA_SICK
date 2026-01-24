@@ -19,8 +19,18 @@ def get_local_ip():
 app = Flask(__name__)
 CORS(app)
 
+ENEMY_STATS = {
+    "class1": {"hp": 30, "atk": 5, "name": "Goblin"},
+    "class2": {"hp": 50, "atk": 10, "name": "Orc"},
+    "class3": {"hp": 100, "atk": 15, "name": "Dragon"}
+}
+
+current_enemy = None
+
 player = {
     "character": None,
+    "current_hp": None,
+    "max_hp": None,
     "xp": 0,
     "level": 1,
     "kills": {"class1":0,"class2":0,"class3":0},
@@ -51,6 +61,8 @@ def index():
 def select_character():
     name = request.json["character"]
     player["character"] = CHARACTERS[name]
+    player["max_hp"] = CHARACTERS[name]["hp"]
+    player["current_hp"] = CHARACTERS[name]["hp"]
     return jsonify({"status":"ok","character":name})
 
 @app.route("/update-location", methods=["POST"])
@@ -61,14 +73,85 @@ def update_location():
 
     if last:
         dist = distance(last[0], last[1], lat, lon)
-        if dist >= 8 and random.random() < 0.8:
+        if dist >= 3 and random.random() < 1:
+            # dist >= travel distance in Meters 
+            # random.random() < 1: spawn rate
             enemy = random.choices(
                 ["class1","class2","class3"],
                 weights=[70,25,5]
             )[0]
-            return jsonify({"spawn":True,"enemy":enemy})
+            # Initialize enemy with full HP
+            current_enemy = {
+                "type": enemy,
+                "hp": ENEMY_STATS[enemy]["hp"],
+                "max_hp": ENEMY_STATS[enemy]["hp"],
+                "atk": ENEMY_STATS[enemy]["atk"],
+                "name": ENEMY_STATS[enemy]["name"]
+            }
+            return jsonify({
+                "spawn":True,
+                "enemy":enemy,
+                "enemy_stats": current_enemy
+            })
 
     return jsonify({"spawn":False})
+
+@app.route("/player-attack", methods=["POST"])
+def player_attack():
+    if not current_enemy:
+        return jsonify({"error": "No enemy to attack"})
+    
+    player_atk = player["character"]["atk"]
+    enemy_hp = current_enemy["hp"]
+    
+    # Player attacks enemy
+    current_enemy["hp"] -= player_atk
+    
+    if current_enemy["hp"] <= 0:
+        # Enemy defeated
+        enemy_type = current_enemy["type"]
+        player["kills"][enemy_type] += 1
+        player["xp"] += {"class1":10,"class2":25,"class3":50}[enemy_type]
+        player["level"] = 1 + player["xp"]//100
+        
+        result = {
+            "player_attack": player_atk,
+            "enemy_hp": 0,
+            "enemy_defeated": True,
+            "player": player,
+            "enemy_type": enemy_type
+        }
+        current_enemy = None
+    else:
+        # Enemy survives, counter-attacks
+        enemy_atk = current_enemy["atk"]
+        player["current_hp"] -= enemy_atk
+        
+        result = {
+            "player_attack": player_atk,
+            "enemy_hp": current_enemy["hp"],
+            "enemy_attack": enemy_atk,
+            "player_hp": player["current_hp"],
+            "enemy_defeated": False,
+            "enemy_stats": current_enemy
+        }
+    
+    return jsonify(result)
+
+@app.route("/heal", methods=["POST"])
+def heal():
+    if not player["character"]:
+        return jsonify({"error": "No character selected"})
+    
+    # Heal 25 HP (or to max)
+    heal_amount = min(25, player["max_hp"] - player["current_hp"])
+    player["current_hp"] += heal_amount
+    
+    return jsonify({
+        "healed": heal_amount,
+        "current_hp": player["current_hp"],
+        "max_hp": player["max_hp"]
+    })
 
 @app.route("/attack", methods=["POST"])
 def attack():

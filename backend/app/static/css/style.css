@@ -1,4 +1,3 @@
-
 /* Global Styles */
 * {
     margin: 0;
@@ -12,6 +11,258 @@ body {
     color: #ffffff;
     min-height: 100vh;
     overflow-x: hidden;
+}
+
+/* CSS Variables */
+:root {
+    --gold: #d4af37;
+    --light-gold: #f9e295;
+    --blue: #0a3d91;
+    --dark-blue: #051f4a;
+    --border: #001a4d;
+}
+
+/* Landing Page Styles */
+.landing-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+    text-align: center;
+}
+
+.logo-container {
+    display: flex;
+    gap: 20px;
+    font-family: "Arial Black", sans-serif;
+    font-size: 80px;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+    animation: logoGlow 3s ease-in-out infinite;
+}
+
+.word {
+    position: relative;
+    display: inline-block;
+    
+    /* The Split Color Effect */
+    background: linear-gradient(
+        to bottom, 
+        var(--light-gold) 0%, 
+        var(--gold) 48%, 
+        var(--blue) 52%, 
+        var(--dark-blue) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+
+    /* The 3D Bevel/Stroke Effect */
+    filter: drop-shadow(2px 2px 0px var(--border)) 
+            drop-shadow(-1px -1px 0px var(--border));
+}
+
+/* Arc and Perspective Tilt */
+.left {
+    transform: perspective(500px) rotateY(15deg) skewY(-5deg);
+}
+
+.right {
+    transform: perspective(500px) rotateY(-15deg) skewY(5deg);
+}
+
+/* Metallic Glint Animation */
+@keyframes logoGlow {
+    0%, 100% {
+        filter: drop-shadow(2px 2px 0px var(--border)) 
+                drop-shadow(-1px -1px 0px var(--border))
+                drop-shadow(0 0 20px rgba(212, 175, 55, 0.3));
+    }
+    50% {
+        filter: drop-shadow(2px 2px 0px var(--border)) 
+                drop-shadow(-1px -1px 0px var(--border))
+                drop-shadow(0 0 30px rgba(212, 175, 55, 0.6));
+    }
+}
+
+.game-description {
+    color: white;
+    margin-bottom: 40px;
+}
+
+.game-description h2 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.game-description p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.main-actions {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.btn-start {
+    background: linear-gradient(45deg, #4caf50, #45a049);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 25px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-start:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.btn-leaderboard {
+    background: linear-gradient(45deg, #ff9800, #f57c00);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 25px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-leaderboard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+}
+
+.leaderboard-container {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px;
+    min-width: 300px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.leaderboard-container h3 {
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.player-stats-summary {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.stat-item {
+    text-align: center;
+    color: white;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--light-gold);
+}
+
+.leaderboard-list {
+    color: white;
+}
+
+.leaderboard-entry {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    transition: background 0.3s ease;
+}
+
+.leaderboard-entry:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.rank-icon {
+    font-size: 2rem;
+    margin-right: 15px;
+}
+
+.enemy-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.enemy-name {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.kill-count {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.loading, .error, .no-data {
+    text-align: center;
+    padding: 20px;
+    color: white;
+    opacity: 0.8;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .logo-container {
+        font-size: 60px;
+        gap: 15px;
+    }
+    
+    .main-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn-start, .btn-leaderboard {
+        width: 200px;
+    }
+    
+    .player-stats-summary {
+        flex-direction: column;
+        gap: 10px;
+    }
 }
 
 #app {
@@ -152,8 +403,66 @@ body {
 
 .player-info {
     display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.player-stats {
+    display: flex;
     gap: 20px;
     font-weight: bold;
+}
+
+.player-health-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.health-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.health-bar {
+    width: 120px;
+    height: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.health-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50, #388e3c);
+    transition: width 0.3s ease, background 0.3s ease;
+    border-radius: 8px;
+}
+
+.health-text {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #ffffff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.player-health-bar {
+    width: 150px;
+}
+
+.enemy-health-bar {
+    width: 100px;
+}
+
+.player-health-fill {
+    background: linear-gradient(90deg, #4caf50, #388e3c);
+}
+
+.enemy-health-fill {
+    background: linear-gradient(90deg, #9c27b0, #7b1fa2);
 }
 
 .btn-back {
@@ -291,6 +600,11 @@ body {
 .log-entry.debug {
     border-left: 4px solid #FF9800;
     background: rgba(255, 152, 0, 0.1);
+}
+
+.log-entry.combat {
+    border-left: 4px solid #F44336;
+    background: rgba(244, 67, 54, 0.1);
 }
 
 .game-controls {
