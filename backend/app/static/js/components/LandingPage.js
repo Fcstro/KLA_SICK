@@ -19,10 +19,10 @@ class LandingPage {
                 </div>
 
                 <div class="main-actions">
-                    <button class="btn-start" onclick="router.navigate('/character')">
+                    <button class="btn-start" onclick="window.router.navigate('/character')">
                         🎮 Start Adventure
                     </button>
-                    <button class="btn-leaderboard" onclick="landingPage.toggleLeaderboard()">
+                    <button class="btn-leaderboard" onclick="window.landingPage.toggleLeaderboard()">
                         🏆 View Leaderboard
                     </button>
                 </div>

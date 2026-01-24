@@ -24,7 +24,7 @@ class GamePage {
                             <span class="health-text player-health-text">HP: --/--</span>
                         </div>
                     </div>
-                    <button class="btn-back" onclick="router.navigate('/')">← Back</button>
+                    <button class="btn-back" onclick="window.router.navigate('/')">← Back</button>
                 </div>
 
                 <div class="ar-container">
@@ -244,7 +244,7 @@ class GamePage {
     gameOver() {
         document.getElementById('status-message').textContent = '💀 You were defeated! Returning to character selection...';
         setTimeout(() => {
-            router.navigate('/');
+            window.router.navigate('/');
         }, 3000);
     }
 

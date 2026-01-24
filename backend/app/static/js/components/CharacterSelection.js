@@ -23,7 +23,7 @@ class CharacterSelection {
                 <div class="characters-grid">
                     ${Object.entries(this.characters).map(([key, char]) => `
                         <div class="character-card ${this.selectedCharacter === key ? 'selected' : ''}" 
-                             onclick="characterSelection.selectCharacter('${key}')">
+                             onclick="window.characterSelection.selectCharacter('${key}')">
                             <div class="character-icon">${this.getCharacterIcon(key)}</div>
                             <h3>${char.name}</h3>
                             <div class="stats">
@@ -43,7 +43,7 @@ class CharacterSelection {
                 
                 <div class="actions">
                     <button class="btn-primary" 
-                            onclick="characterSelection.startGame()" 
+                            onclick="window.characterSelection.startGame()" 
                             ${!this.selectedCharacter ? 'disabled' : ''}>
                         Start Adventure
                     </button>
@@ -80,7 +80,7 @@ class CharacterSelection {
             
             const data = await response.json();
             if (data.status === 'ok') {
-                router.navigate('/game');
+                window.router.navigate('/game');
             }
         } catch (error) {
             console.error('Error selecting character:', error);
