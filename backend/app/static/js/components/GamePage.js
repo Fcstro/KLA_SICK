@@ -182,9 +182,10 @@ class GamePage {
             // Gentle floating motion (up and down only)
             this.enemyModel.position.y = Math.sin(time * 1.5) * 0.3;
             
-            // Subtle breathing effect
-            const scale = 1 + Math.sin(time * 2) * 0.02;
-            this.enemyModel.scale.setScalar(2 * scale);
+            // Subtle breathing effect - preserve the original scale
+            const originalScale = this.enemyModel.scale.x;
+            const scale = originalScale * (1 + Math.sin(time * 2) * 0.02);
+            this.enemyModel.scale.set(scale, scale, scale);
             
             // Keep position centered, no side-to-side or forward/backward movement
             this.enemyModel.position.x = 0;
