@@ -120,11 +120,11 @@ class GamePage {
         this.threeScene = new THREE.Scene();
         this.threeScene.background = null; // Transparent background
 
-        // Camera setup - adjust for larger models
-        const width = container.clientWidth || 300;
-        const height = container.clientHeight || 300;
-        this.threeCamera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000); // Narrower FOV for better framing
-        this.threeCamera.position.z = 10; // Move camera back to fit larger models
+        // Camera setup - adjust for MASSIVE models
+        const width = container.clientWidth || 400;
+        const height = container.clientHeight || 400;
+        this.threeCamera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000); // Much narrower FOV
+        this.threeCamera.position.z = 15; // Move camera way back to fit massive models
 
         // Renderer setup with better transparency
         this.threeRenderer = new THREE.WebGLRenderer({ 
@@ -229,14 +229,14 @@ class GamePage {
                     console.log(`✅ SUCCESS: 3D model loaded for ${enemyType}`, gltf);
                     const model = gltf.scene;
                     
-                    // Set different scales for each enemy type - make them much bigger
-                    let scale = 4; // default scale increased
+                    // Set different scales for each enemy type - make them HUGE
+                    let scale = 8; // default scale massively increased
                     if (enemyType === 'class1') { // Goblin - small
-                        scale = 3;
-                    } else if (enemyType === 'class2') { // Orc - big - much larger
                         scale = 6;
+                    } else if (enemyType === 'class2') { // Orc - big - MASSIVE
+                        scale = 12;
                     } else if (enemyType === 'class3') { // Dragon - large
-                        scale = 5;
+                        scale = 10;
                     }
                     
                     model.scale.set(scale, scale, scale);
