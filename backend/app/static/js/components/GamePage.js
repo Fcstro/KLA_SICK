@@ -98,7 +98,20 @@ class GamePage {
 
     setupThreeJS() {
         const container = document.getElementById('enemy-3d-container');
-        if (!container) return;
+        if (!container) {
+            console.error('❌ ERROR: enemy-3d-container not found');
+            return;
+        }
+
+        console.log('🔧 DEBUG: Setting up Three.js scene');
+        
+        // Clean up existing Three.js if any
+        if (this.threeRenderer) {
+            this.threeRenderer.dispose();
+            if (container.contains(this.threeRenderer.domElement)) {
+                container.removeChild(this.threeRenderer.domElement);
+            }
+        }
 
         // Scene setup
         this.threeScene = new THREE.Scene();
@@ -127,6 +140,8 @@ class GamePage {
         directionalLight.castShadow = true;
         this.threeScene.add(directionalLight);
 
+        console.log('✅ SUCCESS: Three.js setup complete');
+        
         // Start render loop
         this.animate();
     }
@@ -149,14 +164,31 @@ class GamePage {
 
     async load3DEnemyModel(enemyType) {
         return new Promise((resolve, reject) => {
+            console.log(`🔧 DEBUG: Attempting to load 3D model for ${enemyType}`);
+            
+            // Check if THREE and GLTFLoader are available
+            if (typeof THREE === 'undefined') {
+                console.error('❌ ERROR: THREE.js is not loaded');
+                resolve(this.createFallbackEnemy(enemyType));
+                return;
+            }
+            
+            if (typeof THREE.GLTFLoader === 'undefined') {
+                console.error('❌ ERROR: GLTFLoader is not available');
+                resolve(this.createFallbackEnemy(enemyType));
+                return;
+            }
+            
             const loader = new THREE.GLTFLoader();
             
             // Try to load 3D model, fallback to placeholder if not found
             const modelPath = `/static/assets/enemies/${enemyType}.glb`;
+            console.log(`🔧 DEBUG: Loading model from ${modelPath}`);
             
             loader.load(
                 modelPath,
                 (gltf) => {
+                    console.log(`✅ SUCCESS: 3D model loaded for ${enemyType}`, gltf);
                     const model = gltf.scene;
                     model.scale.set(2, 2, 2); // Adjust scale as needed
                     model.position.set(0, 0, 0);
@@ -165,20 +197,23 @@ class GamePage {
                     
                     // Setup animations
                     if (gltf.animations.length > 0) {
+                        console.log(`🎬 DEBUG: Found ${gltf.animations.length} animations`);
                         this.animationMixer = new THREE.AnimationMixer(model);
                         gltf.animations.forEach((clip) => {
                             const action = this.animationMixer.clipAction(clip);
                             action.play();
                         });
+                    } else {
+                        console.log(`🎬 DEBUG: No animations found`);
                     }
                     
                     resolve(model);
                 },
                 (progress) => {
-                    console.log('Loading progress:', progress);
+                    console.log(`📊 DEBUG: Loading progress:`, progress);
                 },
                 (error) => {
-                    console.warn(`Failed to load 3D model for ${enemyType}, using fallback:`, error);
+                    console.warn(`⚠️ WARNING: Failed to load 3D model for ${enemyType}, using fallback:`, error);
                     resolve(this.createFallbackEnemy(enemyType));
                 }
             );
@@ -245,33 +280,46 @@ class GamePage {
             name: this.getEnemyName(enemyType)
         };
         
-        // Load 3D enemy model
+        // Load 3D enemy model first
         this.enemyModel = await this.load3DEnemyModel(enemyType);
         if (this.enemyModel && this.threeScene) {
             this.threeScene.add(this.enemyModel);
         }
         
-        enemyContainer.innerHTML = `
-            <div class="enemy ${enemyType}">
-                <div class="enemy-visual">
-                    <div id="enemy-3d-container" class="enemy-3d-container"></div>
-                    <div class="enemy-icon-fallback" style="display: none;">${this.getEnemyIcon(enemyType)}</div>
+        // Update enemy info without destroying the 3D container
+        const enemyInfo = enemyContainer.querySelector('.enemy-info') || document.createElement('div');
+        enemyInfo.className = 'enemy-info';
+        enemyInfo.innerHTML = `
+            <h3>${stats.name}</h3>
+            <div class="health-bar-container">
+                <div class="health-bar enemy-health-bar">
+                    <div class="health-fill enemy-health-fill" style="width: 100%"></div>
                 </div>
-                <div class="enemy-info">
-                    <h3>${stats.name}</h3>
-                    <div class="health-bar-container">
-                        <div class="health-bar enemy-health-bar">
-                            <div class="health-fill enemy-health-fill" style="width: 100%"></div>
-                        </div>
-                        <span class="health-text enemy-health-text">HP: ${stats.hp}/${stats.max_hp}</span>
-                    </div>
-                    <p>Wild enemy appeared!</p>
-                </div>
+                <span class="health-text enemy-health-text">HP: ${stats.hp}/${stats.max_hp}</span>
             </div>
+            <p>Wild enemy appeared!</p>
         `;
         
-        // Re-setup Three.js container since we replaced innerHTML
-        this.setupThreeJS();
+        // Make sure enemy container has the right structure
+        if (!enemyContainer.querySelector('.enemy-visual')) {
+            enemyContainer.innerHTML = `
+                <div class="enemy ${enemyType}">
+                    <div class="enemy-visual">
+                        <div id="enemy-3d-container" class="enemy-3d-container"></div>
+                        <div class="enemy-icon-fallback" style="display: none;">${this.getEnemyIcon(enemyType)}</div>
+                    </div>
+                </div>
+            `;
+            // Re-setup Three.js container since we replaced innerHTML
+            this.setupThreeJS();
+            // Re-add the enemy model
+            if (this.enemyModel && this.threeScene) {
+                this.threeScene.add(this.enemyModel);
+            }
+        }
+        
+        // Add the enemy info
+        enemyContainer.querySelector('.enemy').appendChild(enemyInfo);
         
         combatControls.style.display = 'flex';
         statusMessage.textContent = `⚔️ A ${stats.name} appeared!`;
