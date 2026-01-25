@@ -5,6 +5,12 @@ class GamePage {
         this.currentEnemy = null;
         this.locationWatcher = null;
         this.cameraStream = null;
+        this.threeScene = null;
+        this.threeRenderer = null;
+        this.threeCamera = null;
+        this.enemyModel = null;
+        this.animationMixer = null;
+        this.enemyAnimations = {};
     }
 
     async render() {
@@ -30,7 +36,9 @@ class GamePage {
                 <div class="ar-container">
                     <video id="cam" autoplay playsinline></video>
                     <div class="game-overlay">
-                        <div id="enemy-container" class="enemy-container"></div>
+                        <div id="enemy-container" class="enemy-container">
+                            <div id="enemy-3d-container" class="enemy-3d-container"></div>
+                        </div>
                         <div id="game-log" class="game-log"></div>
                     </div>
                 </div>
@@ -56,6 +64,7 @@ class GamePage {
     async initializeGame() {
         await this.setupCamera();
         this.setupLocationTracking();
+        this.setupThreeJS();
         await this.loadPlayerData();
     }
 
@@ -87,6 +96,118 @@ class GamePage {
         }
     }
 
+    setupThreeJS() {
+        const container = document.getElementById('enemy-3d-container');
+        if (!container) return;
+
+        // Scene setup
+        this.threeScene = new THREE.Scene();
+        this.threeScene.background = null; // Transparent background
+
+        // Camera setup
+        const width = container.clientWidth || 300;
+        const height = container.clientHeight || 300;
+        this.threeCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        this.threeCamera.position.z = 5;
+
+        // Renderer setup
+        this.threeRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        this.threeRenderer.setSize(width, height);
+        this.threeRenderer.setClearColor(0x000000, 0); // Transparent
+        this.threeRenderer.shadowMap.enabled = true;
+        this.threeRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(this.threeRenderer.domElement);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        this.threeScene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 10, 5);
+        directionalLight.castShadow = true;
+        this.threeScene.add(directionalLight);
+
+        // Start render loop
+        this.animate();
+    }
+
+    animate() {
+        requestAnimationFrame(() => this.animate());
+        
+        if (this.animationMixer) {
+            this.animationMixer.update(0.016); // ~60fps
+        }
+        
+        if (this.enemyModel) {
+            this.enemyModel.rotation.y += 0.01; // Slow rotation
+        }
+        
+        if (this.threeRenderer && this.threeScene && this.threeCamera) {
+            this.threeRenderer.render(this.threeScene, this.threeCamera);
+        }
+    }
+
+    async load3DEnemyModel(enemyType) {
+        return new Promise((resolve, reject) => {
+            const loader = new THREE.GLTFLoader();
+            
+            // Try to load 3D model, fallback to placeholder if not found
+            const modelPath = `/static/assets/enemies/${enemyType}.glb`;
+            
+            loader.load(
+                modelPath,
+                (gltf) => {
+                    const model = gltf.scene;
+                    model.scale.set(2, 2, 2); // Adjust scale as needed
+                    model.position.set(0, 0, 0);
+                    model.castShadow = true;
+                    model.receiveShadow = true;
+                    
+                    // Setup animations
+                    if (gltf.animations.length > 0) {
+                        this.animationMixer = new THREE.AnimationMixer(model);
+                        gltf.animations.forEach((clip) => {
+                            const action = this.animationMixer.clipAction(clip);
+                            action.play();
+                        });
+                    }
+                    
+                    resolve(model);
+                },
+                (progress) => {
+                    console.log('Loading progress:', progress);
+                },
+                (error) => {
+                    console.warn(`Failed to load 3D model for ${enemyType}, using fallback:`, error);
+                    resolve(this.createFallbackEnemy(enemyType));
+                }
+            );
+        });
+    }
+
+    createFallbackEnemy(enemyType) {
+        // Create a simple 3D shape as fallback
+        const geometry = new THREE.BoxGeometry(2, 2, 2);
+        const material = new THREE.MeshPhongMaterial({ 
+            color: this.getEnemyColor(enemyType),
+            emissive: this.getEnemyColor(enemyType),
+            emissiveIntensity: 0.2
+        });
+        const model = new THREE.Mesh(geometry, material);
+        model.castShadow = true;
+        model.receiveShadow = true;
+        return model;
+    }
+
+    getEnemyColor(enemyType) {
+        const colors = {
+            class1: 0x00ff00, // Green for Goblin
+            class2: 0xff0000, // Red for Orc
+            class3: 0x8b00ff   // Purple for Dragon
+        };
+        return colors[enemyType] || 0xffffff;
+    }
+
     async handleLocationUpdate(position) {
         try {
             const response = await fetch('/update-location', {
@@ -107,11 +228,14 @@ class GamePage {
         }
     }
 
-    spawnEnemy(enemyType, enemyStats = null) {
+    async spawnEnemy(enemyType, enemyStats = null) {
         this.currentEnemy = enemyType;
         const enemyContainer = document.getElementById('enemy-container');
         const combatControls = document.getElementById('combat-controls');
         const statusMessage = document.getElementById('status-message');
+        
+        // Clear previous enemy
+        this.clearEnemy3D();
         
         // Use provided stats or default stats
         const stats = enemyStats || {
@@ -121,14 +245,17 @@ class GamePage {
             name: this.getEnemyName(enemyType)
         };
         
+        // Load 3D enemy model
+        this.enemyModel = await this.load3DEnemyModel(enemyType);
+        if (this.enemyModel && this.threeScene) {
+            this.threeScene.add(this.enemyModel);
+        }
+        
         enemyContainer.innerHTML = `
             <div class="enemy ${enemyType}">
                 <div class="enemy-visual">
-                    <img src="/static/assets/enemies/${enemyType}.png" 
-                         alt="${enemyType} enemy" 
-                         class="enemy-image"
-                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                    <div class="enemy-icon-fallback">${this.getEnemyIcon(enemyType)}</div>
+                    <div id="enemy-3d-container" class="enemy-3d-container"></div>
+                    <div class="enemy-icon-fallback" style="display: none;">${this.getEnemyIcon(enemyType)}</div>
                 </div>
                 <div class="enemy-info">
                     <h3>${stats.name}</h3>
@@ -142,6 +269,9 @@ class GamePage {
                 </div>
             </div>
         `;
+        
+        // Re-setup Three.js container since we replaced innerHTML
+        this.setupThreeJS();
         
         combatControls.style.display = 'flex';
         statusMessage.textContent = `⚔️ A ${stats.name} appeared!`;
@@ -276,9 +406,23 @@ class GamePage {
 
     clearEnemy() {
         this.currentEnemy = null;
-        document.getElementById('enemy-container').innerHTML = '';
+        this.clearEnemy3D();
+        document.getElementById('enemy-container').innerHTML = `
+            <div id="enemy-3d-container" class="enemy-3d-container"></div>
+        `;
         document.getElementById('combat-controls').style.display = 'none';
         document.getElementById('status-message').textContent = '📍 Move around to find enemies...';
+    }
+
+    clearEnemy3D() {
+        if (this.enemyModel && this.threeScene) {
+            this.threeScene.remove(this.enemyModel);
+            this.enemyModel = null;
+        }
+        if (this.animationMixer) {
+            this.animationMixer.stopAllAction();
+            this.animationMixer = null;
+        }
     }
 
     async loadPlayerData() {
@@ -348,5 +492,18 @@ class GamePage {
         if (this.cameraStream) {
             this.cameraStream.getTracks().forEach(track => track.stop());
         }
+        
+        // Cleanup Three.js resources
+        this.clearEnemy3D();
+        if (this.threeRenderer) {
+            this.threeRenderer.dispose();
+            const container = document.getElementById('enemy-3d-container');
+            if (container && this.threeRenderer.domElement) {
+                container.removeChild(this.threeRenderer.domElement);
+            }
+            this.threeRenderer = null;
+        }
+        this.threeScene = null;
+        this.threeCamera = null;
     }
 }
