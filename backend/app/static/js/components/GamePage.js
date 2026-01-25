@@ -120,11 +120,11 @@ class GamePage {
         this.threeScene = new THREE.Scene();
         this.threeScene.background = null; // Transparent background
 
-        // Camera setup - wider FOV for more immersive AR feel
+        // Camera setup - adjust for larger models
         const width = container.clientWidth || 300;
         const height = container.clientHeight || 300;
-        this.threeCamera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
-        this.threeCamera.position.z = 8;
+        this.threeCamera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000); // Narrower FOV for better framing
+        this.threeCamera.position.z = 10; // Move camera back to fit larger models
 
         // Renderer setup with better transparency
         this.threeRenderer = new THREE.WebGLRenderer({ 
@@ -229,14 +229,14 @@ class GamePage {
                     console.log(`✅ SUCCESS: 3D model loaded for ${enemyType}`, gltf);
                     const model = gltf.scene;
                     
-                    // Set different scales for each enemy type
-                    let scale = 2; // default scale
+                    // Set different scales for each enemy type - make them much bigger
+                    let scale = 4; // default scale increased
                     if (enemyType === 'class1') { // Goblin - small
-                        scale = 1.5;
-                    } else if (enemyType === 'class2') { // Orc - big
                         scale = 3;
+                    } else if (enemyType === 'class2') { // Orc - big - much larger
+                        scale = 6;
                     } else if (enemyType === 'class3') { // Dragon - large
-                        scale = 2.5;
+                        scale = 5;
                     }
                     
                     model.scale.set(scale, scale, scale);
@@ -291,14 +291,14 @@ class GamePage {
                 (texture) => {
                     console.log(`✅ SUCCESS: 2D image loaded for ${enemyType}`);
                     
-                    // Set different sizes for each enemy type
-                    let size = 3; // default size
+                    // Set different sizes for each enemy type - make them much bigger
+                    let size = 4; // default size increased
                     if (enemyType === 'class1') { // Goblin - small
-                        size = 2;
-                    } else if (enemyType === 'class2') { // Orc - big
-                        size = 4;
+                        size = 3;
+                    } else if (enemyType === 'class2') { // Orc - big - much larger
+                        size = 6;
                     } else if (enemyType === 'class3') { // Dragon - large
-                        size = 3.5;
+                        size = 5;
                     }
                     
                     // Create a plane geometry with the texture
@@ -324,14 +324,14 @@ class GamePage {
     }
 
     createFallbackEnemy(enemyType) {
-        // Create a simple 3D shape as fallback with appropriate sizes
-        let size = 2; // default size
+        // Create a simple 3D shape as fallback with appropriate sizes - make them much bigger
+        let size = 4; // default size increased
         if (enemyType === 'class1') { // Goblin - small
-            size = 1.5;
-        } else if (enemyType === 'class2') { // Orc - big
             size = 3;
+        } else if (enemyType === 'class2') { // Orc - big - much larger
+            size = 6;
         } else if (enemyType === 'class3') { // Dragon - large
-            size = 2.5;
+            size = 5;
         }
         
         const geometry = new THREE.BoxGeometry(size, size, size);
