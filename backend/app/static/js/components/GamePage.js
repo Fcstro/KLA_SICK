@@ -241,8 +241,12 @@ class GamePage {
                     model.scale.set(scale, scale, scale);
                     model.position.set(0, 0, 0);
                     
-                    // Fix model orientation - rotate 180 degrees to face forward
-                    model.rotation.y = Math.PI; // 180 degrees
+                    // Fix model orientation - different rotation for each enemy type
+                    if (enemyType === 'class2') { // Orc - needs different rotation
+                        model.rotation.y = 0; // No rotation needed for Orc
+                    } else {
+                        model.rotation.y = Math.PI; // 180 degrees for Goblin and Dragon
+                    }
                     
                     model.castShadow = true;
                     model.receiveShadow = true;
