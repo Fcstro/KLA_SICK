@@ -138,34 +138,65 @@ class GamePage {
         this.threeRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
         this.threeRenderer.toneMappingExposure = 1.2;
+        
+        // Enable depth testing for proper AR integration
+        this.threeRenderer.sortObjects = false;
         container.appendChild(this.threeRenderer.domElement);
 
-        // Enhanced AR-style lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); // Softer ambient
-        this.threeScene.add(ambientLight);
-
-        // Main directional light (sun)
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.set(5, 10, 5);
-        directionalLight.castShadow = true;
-        directionalLight.shadow.mapSize.width = 2048;
-        directionalLight.shadow.mapSize.height = 2048;
-        directionalLight.shadow.camera.near = 0.5;
-        directionalLight.shadow.camera.far = 50;
-        this.threeScene.add(directionalLight);
-
-        // Rim light for better depth perception
-        const rimLight = new THREE.DirectionalLight(0x4488ff, 0.3);
-        rimLight.position.set(-5, 5, -5);
-        this.threeScene.add(rimLight);
-
-        // Add subtle fog for depth
-        this.threeScene.fog = new THREE.Fog(0x000000, 10, 50);
+        // AR-style lighting that matches real environment
+        this.setupARLighting();
+        
+        // Add ground plane for shadows and depth
+        this.setupGroundPlane();
 
         console.log('✅ SUCCESS: Three.js setup complete');
         
         // Start render loop
         this.animate();
+    }
+
+    setupARLighting() {
+        // Clear existing lights
+        while(this.threeScene.children.length > 0) {
+            this.threeScene.remove(this.threeScene.children[0]);
+        }
+
+        // Environmental lighting that matches real world
+        const envLight = new THREE.AmbientLight(0xffffff, 0.3);
+        this.threeScene.add(envLight);
+
+        // Main light simulating sun from above
+        const sunLight = new THREE.DirectionalLight(0xffffff, 0.7);
+        sunLight.position.set(10, 20, 5);
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 2048;
+        sunLight.shadow.mapSize.height = 2048;
+        sunLight.shadow.camera.near = 0.5;
+        sunLight.shadow.camera.far = 50;
+        sunLight.shadow.camera.left = -20;
+        sunLight.shadow.camera.right = 20;
+        sunLight.shadow.camera.top = 20;
+        sunLight.shadow.camera.bottom = -20;
+        this.threeScene.add(sunLight);
+
+        // Add subtle environment reflection
+        const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256);
+        const envMap = cubeRenderTarget.texture;
+        this.threeScene.environment = envMap;
+    }
+
+    setupGroundPlane() {
+        // Create invisible ground plane for shadows
+        const planeGeometry = new THREE.PlaneGeometry(100, 100);
+        const planeMaterial = new THREE.ShadowMaterial({ 
+            opacity: 0.3,
+            transparent: true
+        });
+        const groundPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+        groundPlane.rotation.x = -Math.PI / 2; // Rotate to be flat
+        groundPlane.position.y = -5; // Position below enemy
+        groundPlane.receiveShadow = true;
+        this.threeScene.add(groundPlane);
     }
 
     animate() {
@@ -387,10 +418,23 @@ class GamePage {
             name: this.getEnemyName(enemyType)
         };
         
+        // AR spawn effect - fade in appearance
+        this.showSpawnEffect();
+        
         // Load 3D enemy model first
         this.enemyModel = await this.load3DEnemyModel(enemyType);
         if (this.enemyModel && this.threeScene) {
+            // Position enemy to look like it's standing on real ground
+            this.enemyModel.position.y = 0; // Ground level
+            this.enemyModel.position.set(0, 0, 0);
+            
+            // Add AR integration effects
+            this.addAREffects(enemyType);
+            
             this.threeScene.add(this.enemyModel);
+            
+            // Fade in animation
+            this.fadeInEnemy();
         }
         
         // Update enemy info without destroying the 3D container
@@ -430,6 +474,105 @@ class GamePage {
         
         combatControls.style.display = 'flex';
         statusMessage.textContent = `⚔️ A ${stats.name} appeared!`;
+    }
+
+    showSpawnEffect() {
+        // Visual spawn effect
+        const container = document.getElementById('enemy-3d-container');
+        if (container) {
+            container.style.opacity = '0';
+            container.style.transition = 'opacity 1.5s ease-in';
+            setTimeout(() => {
+                container.style.opacity = '1';
+            }, 100);
+        }
+    }
+
+    fadeInEnemy() {
+        if (this.enemyModel) {
+            this.enemyModel.traverse((child) => {
+                if (child.material) {
+                    child.material.transparent = true;
+                    child.material.opacity = 0;
+                    const fadeIn = () => {
+                        if (child.material.opacity < 1) {
+                            child.material.opacity += 0.02;
+                            requestAnimationFrame(fadeIn);
+                        }
+                    };
+                    fadeIn();
+                }
+            });
+        }
+    }
+
+    addAREffects(enemyType) {
+        if (!this.enemyModel) return;
+        
+        // Add environment-based material properties
+        this.enemyModel.traverse((child) => {
+            if (child.isMesh) {
+                // Enable proper depth testing
+                child.material.depthTest = true;
+                child.material.depthWrite = true;
+                
+                // Add subtle environment reflection
+                if (child.material.metalness !== undefined) {
+                    child.material.metalness = 0.1;
+                    child.material.roughness = 0.8;
+                }
+                
+                // Enable shadows
+                child.castShadow = true;
+                child.receiveShadow = true;
+            }
+        });
+        
+        // Add particle effects for more AR feel
+        this.addSpawnParticles(enemyType);
+    }
+
+    addSpawnParticles(enemyType) {
+        // Create simple particle effect for spawn
+        const particleCount = 20;
+        const particles = [];
+        
+        for (let i = 0; i < particleCount; i++) {
+            const geometry = new THREE.SphereGeometry(0.1, 8, 8);
+            const material = new THREE.MeshBasicMaterial({
+                color: this.getEnemyColor(enemyType),
+                transparent: true,
+                opacity: 0.6
+            });
+            const particle = new THREE.Mesh(geometry, material);
+            
+            // Random position around enemy
+            particle.position.x = (Math.random() - 0.5) * 10;
+            particle.position.y = Math.random() * 5;
+            particle.position.z = (Math.random() - 0.5) * 10;
+            
+            this.threeScene.add(particle);
+            particles.push(particle);
+        }
+        
+        // Animate particles and remove after spawn
+        let particleLife = 100;
+        const animateParticles = () => {
+            if (particleLife > 0) {
+                particles.forEach(particle => {
+                    particle.position.y += 0.1;
+                    particle.material.opacity -= 0.006;
+                });
+                particleLife--;
+                requestAnimationFrame(animateParticles);
+            } else {
+                // Remove particles
+                particles.forEach(particle => {
+                    this.threeScene.remove(particle);
+                });
+            }
+        };
+        animateParticles();
     }
 
     getEnemyIcon(enemyType) {
