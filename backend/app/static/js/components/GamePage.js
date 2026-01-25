@@ -176,23 +176,18 @@ class GamePage {
         }
         
         if (this.enemyModel) {
-            // Animated movement in one spot without rotation
+            // Animated movement in one spot without rotation or scaling
             const time = Date.now() * 0.001;
             
             // Gentle floating motion (up and down only)
             this.enemyModel.position.y = Math.sin(time * 1.5) * 0.3;
             
-            // Subtle breathing effect - preserve the original scale
-            const originalScale = this.enemyModel.scale.x;
-            const scale = originalScale * (1 + Math.sin(time * 2) * 0.02);
-            this.enemyModel.scale.set(scale, scale, scale);
-            
             // Keep position centered, no side-to-side or forward/backward movement
             this.enemyModel.position.x = 0;
             this.enemyModel.position.z = 0;
             
+            // NO SCALING - keep enemy at fixed size
             // No rotation - keep original orientation
-            // this.enemyModel.rotation.y += 0; // No rotation
         }
         
         if (this.threeRenderer && this.threeScene && this.threeCamera) {
