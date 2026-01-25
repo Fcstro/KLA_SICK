@@ -52,7 +52,10 @@ class GamePage {
                         📍 Move around to find enemies...
                     </div>
                     <div class="debug-controls">
-                        <button class="btn-debug" onclick="gamePage.spawnTestEnemy()">🐉 Test Dragon (100%)</button>
+                        <button class="btn-debug" onclick="gamePage.testAssetLoading()">🔍 Test Assets</button>
+                        <button class="btn-debug" onclick="gamePage.spawnGoblin()">👹 Spawn Goblin</button>
+                        <button class="btn-debug" onclick="gamePage.spawnOrc()">👺 Spawn Orc</button>
+                        <button class="btn-debug" onclick="gamePage.spawnTestEnemy()">🐉 Spawn Dragon</button>
                     </div>
                 </div>
             </div>
@@ -117,28 +120,47 @@ class GamePage {
         this.threeScene = new THREE.Scene();
         this.threeScene.background = null; // Transparent background
 
-        // Camera setup
+        // Camera setup - wider FOV for more immersive AR feel
         const width = container.clientWidth || 300;
         const height = container.clientHeight || 300;
-        this.threeCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-        this.threeCamera.position.z = 5;
+        this.threeCamera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
+        this.threeCamera.position.z = 8;
 
-        // Renderer setup
-        this.threeRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        // Renderer setup with better transparency
+        this.threeRenderer = new THREE.WebGLRenderer({ 
+            alpha: true, 
+            antialias: true,
+            powerPreference: "high-performance"
+        });
         this.threeRenderer.setSize(width, height);
-        this.threeRenderer.setClearColor(0x000000, 0); // Transparent
+        this.threeRenderer.setClearColor(0x000000, 0); // Fully transparent
         this.threeRenderer.shadowMap.enabled = true;
         this.threeRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this.threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+        this.threeRenderer.toneMappingExposure = 1.2;
         container.appendChild(this.threeRenderer.domElement);
 
-        // Lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        // Enhanced AR-style lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); // Softer ambient
         this.threeScene.add(ambientLight);
 
+        // Main directional light (sun)
         const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
         directionalLight.position.set(5, 10, 5);
         directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        directionalLight.shadow.camera.near = 0.5;
+        directionalLight.shadow.camera.far = 50;
         this.threeScene.add(directionalLight);
+
+        // Rim light for better depth perception
+        const rimLight = new THREE.DirectionalLight(0x4488ff, 0.3);
+        rimLight.position.set(-5, 5, -5);
+        this.threeScene.add(rimLight);
+
+        // Add subtle fog for depth
+        this.threeScene.fog = new THREE.Fog(0x000000, 10, 50);
 
         console.log('✅ SUCCESS: Three.js setup complete');
         
@@ -154,7 +176,22 @@ class GamePage {
         }
         
         if (this.enemyModel) {
-            this.enemyModel.rotation.y += 0.01; // Slow rotation
+            // Animated movement in one spot without rotation
+            const time = Date.now() * 0.001;
+            
+            // Gentle floating motion (up and down only)
+            this.enemyModel.position.y = Math.sin(time * 1.5) * 0.3;
+            
+            // Subtle breathing effect
+            const scale = 1 + Math.sin(time * 2) * 0.02;
+            this.enemyModel.scale.setScalar(2 * scale);
+            
+            // Keep position centered, no side-to-side or forward/backward movement
+            this.enemyModel.position.x = 0;
+            this.enemyModel.position.z = 0;
+            
+            // No rotation - keep original orientation
+            // this.enemyModel.rotation.y += 0; // No rotation
         }
         
         if (this.threeRenderer && this.threeScene && this.threeCamera) {
@@ -181,7 +218,7 @@ class GamePage {
             
             const loader = new THREE.GLTFLoader();
             
-            // Try to load 3D model, fallback to placeholder if not found
+            // Try to load 3D model, fallback to 2D image then to 3D shape
             const modelPath = `/static/assets/enemies/${enemyType}.glb`;
             console.log(`🔧 DEBUG: Loading model from ${modelPath}`);
             
@@ -213,8 +250,44 @@ class GamePage {
                     console.log(`📊 DEBUG: Loading progress:`, progress);
                 },
                 (error) => {
-                    console.warn(`⚠️ WARNING: Failed to load 3D model for ${enemyType}, using fallback:`, error);
-                    resolve(this.createFallbackEnemy(enemyType));
+                    console.warn(`⚠️ WARNING: Failed to load 3D model for ${enemyType}, trying 2D fallback:`, error);
+                    // Try 2D image fallback first
+                    this.load2DEnemyImage(enemyType).then(resolve).catch(() => {
+                        resolve(this.createFallbackEnemy(enemyType));
+                    });
+                }
+            );
+        });
+    }
+
+    async load2DEnemyImage(enemyType) {
+        return new Promise((resolve, reject) => {
+            const imagePath = `/static/assets/enemies/${enemyType}.png`;
+            console.log(`🔧 DEBUG: Trying 2D image fallback: ${imagePath}`);
+            
+            const loader = new THREE.TextureLoader();
+            loader.load(
+                imagePath,
+                (texture) => {
+                    console.log(`✅ SUCCESS: 2D image loaded for ${enemyType}`);
+                    
+                    // Create a plane geometry with the texture
+                    const geometry = new THREE.PlaneGeometry(3, 3);
+                    const material = new THREE.MeshBasicMaterial({ 
+                        map: texture,
+                        transparent: true,
+                        alphaTest: 0.1
+                    });
+                    const model = new THREE.Mesh(geometry, material);
+                    model.castShadow = false;
+                    model.receiveShadow = false;
+                    
+                    resolve(model);
+                },
+                undefined,
+                (error) => {
+                    console.warn(`⚠️ WARNING: Failed to load 2D image for ${enemyType}:`, error);
+                    reject(error);
                 }
             );
         });
@@ -511,8 +584,40 @@ class GamePage {
         return xpValues[enemyType] || 10;
     }
 
-    spawnTestEnemy() {
-        // For testing - always spawn class3 enemy (100% for testing)
+    async testAssetLoading() {
+        console.log('🔧 DEBUG: Testing asset loading...');
+        
+        try {
+            // Test if assets endpoint works
+            const response = await fetch('/test-assets');
+            const data = await response.json();
+            console.log('📁 Asset files found:', data);
+            
+            // Test direct file access
+            const testUrls = [
+                '/static/assets/enemies/class1.glb',
+                '/static/assets/enemies/class2.glb', 
+                '/static/assets/enemies/class3.glb',
+                '/static/assets/enemies/class1.png',
+                '/static/assets/enemies/class2.png',
+                '/static/assets/enemies/class3.png'
+            ];
+            
+            for (const url of testUrls) {
+                try {
+                    const imgResponse = await fetch(url, { method: 'HEAD' });
+                    console.log(`🔍 ${url}: ${imgResponse.status} ${imgResponse.ok ? '✅' : '❌'}`);
+                } catch (e) {
+                    console.log(`🔍 ${url}: ❌ Error - ${e.message}`);
+                }
+            }
+        } catch (error) {
+            console.error('❌ Error testing assets:', error);
+        }
+    }
+
+    async spawnTestEnemy() {
+        // For testing - spawn class3 enemy (Dragon)
         const enemyType = 'class3';
         const enemyStats = {
             hp: this.getDefaultEnemyHP(enemyType),
@@ -531,6 +636,32 @@ class GamePage {
                 🐉 DEBUG: Test enemy spawned! (${enemyStats.name} - HP: ${enemyStats.hp}/${enemyStats.max_hp})
             </div>
         ` + gameLog.innerHTML;
+    }
+
+    async spawnGoblin() {
+        const enemyType = 'class1';
+        const enemyStats = {
+            hp: this.getDefaultEnemyHP(enemyType),
+            max_hp: this.getDefaultEnemyHP(enemyType),
+            atk: this.getDefaultEnemyATK(enemyType),
+            name: this.getEnemyName(enemyType)
+        };
+        
+        console.log(`👹 DEBUG: Spawning Goblin - HP: ${enemyStats.hp}/${enemyStats.max_hp}`);
+        this.spawnEnemy(enemyType, enemyStats);
+    }
+
+    async spawnOrc() {
+        const enemyType = 'class2';
+        const enemyStats = {
+            hp: this.getDefaultEnemyHP(enemyType),
+            max_hp: this.getDefaultEnemyHP(enemyType),
+            atk: this.getDefaultEnemyATK(enemyType),
+            name: this.getEnemyName(enemyType)
+        };
+        
+        console.log(`👺 DEBUG: Spawning Orc - HP: ${enemyStats.hp}/${enemyStats.max_hp}`);
+        this.spawnEnemy(enemyType, enemyStats);
     }
 
     cleanup() {

@@ -75,7 +75,7 @@ def update_location():
 
     if last:
         dist = distance(last[0], last[1], lat, lon)
-        if dist >= 3 and random.random() < 1:
+        if dist >= 1 and random.random() < 0.8:
             # dist >= travel distance in Meters 
             # random.random() < 1: spawn rate
             enemy = random.choices(
@@ -164,6 +164,35 @@ def attack():
     player["xp"] += {"class1":10,"class2":25,"class3":50}[enemy]
     player["level"] = 1 + player["xp"]//100
     return jsonify(player)
+
+@app.route("/spawn-enemy", methods=["POST"])
+def spawn_enemy():
+    global current_enemy
+    
+    enemy_type = request.json.get("enemy_type", "class1")
+    
+    current_enemy = {
+        "type": enemy_type,
+        "hp": ENEMY_STATS[enemy_type]["hp"],
+        "max_hp": ENEMY_STATS[enemy_type]["hp"],
+        "atk": ENEMY_STATS[enemy_type]["atk"],
+        "name": ENEMY_STATS[enemy_type]["name"]
+    }
+    
+    return jsonify({
+        "spawn": True,
+        "enemy": enemy_type,
+        "enemy_stats": current_enemy
+    })
+
+@app.route("/test-assets")
+def test_assets():
+    import os
+    assets_path = os.path.join(app.static_folder, 'assets', 'enemies')
+    files = []
+    if os.path.exists(assets_path):
+        files = os.listdir(assets_path)
+    return jsonify({"assets_path": assets_path, "files": files})
 
 @app.route("/leaderboard")
 def leaderboard():
