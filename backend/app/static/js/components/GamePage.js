@@ -227,8 +227,23 @@ class GamePage {
                 (gltf) => {
                     console.log(`✅ SUCCESS: 3D model loaded for ${enemyType}`, gltf);
                     const model = gltf.scene;
-                    model.scale.set(2, 2, 2); // Adjust scale as needed
+                    
+                    // Set different scales for each enemy type
+                    let scale = 2; // default scale
+                    if (enemyType === 'class1') { // Goblin - small
+                        scale = 1.5;
+                    } else if (enemyType === 'class2') { // Orc - big
+                        scale = 3;
+                    } else if (enemyType === 'class3') { // Dragon - large
+                        scale = 2.5;
+                    }
+                    
+                    model.scale.set(scale, scale, scale);
                     model.position.set(0, 0, 0);
+                    
+                    // Fix model orientation - rotate 180 degrees to face forward
+                    model.rotation.y = Math.PI; // 180 degrees
+                    
                     model.castShadow = true;
                     model.receiveShadow = true;
                     
@@ -271,8 +286,18 @@ class GamePage {
                 (texture) => {
                     console.log(`✅ SUCCESS: 2D image loaded for ${enemyType}`);
                     
+                    // Set different sizes for each enemy type
+                    let size = 3; // default size
+                    if (enemyType === 'class1') { // Goblin - small
+                        size = 2;
+                    } else if (enemyType === 'class2') { // Orc - big
+                        size = 4;
+                    } else if (enemyType === 'class3') { // Dragon - large
+                        size = 3.5;
+                    }
+                    
                     // Create a plane geometry with the texture
-                    const geometry = new THREE.PlaneGeometry(3, 3);
+                    const geometry = new THREE.PlaneGeometry(size, size);
                     const material = new THREE.MeshBasicMaterial({ 
                         map: texture,
                         transparent: true,
@@ -294,8 +319,17 @@ class GamePage {
     }
 
     createFallbackEnemy(enemyType) {
-        // Create a simple 3D shape as fallback
-        const geometry = new THREE.BoxGeometry(2, 2, 2);
+        // Create a simple 3D shape as fallback with appropriate sizes
+        let size = 2; // default size
+        if (enemyType === 'class1') { // Goblin - small
+            size = 1.5;
+        } else if (enemyType === 'class2') { // Orc - big
+            size = 3;
+        } else if (enemyType === 'class3') { // Dragon - large
+            size = 2.5;
+        }
+        
+        const geometry = new THREE.BoxGeometry(size, size, size);
         const material = new THREE.MeshPhongMaterial({ 
             color: this.getEnemyColor(enemyType),
             emissive: this.getEnemyColor(enemyType),
