@@ -120,11 +120,11 @@ class GamePage {
         this.threeScene = new THREE.Scene();
         this.threeScene.background = null; // Transparent background
 
-        // Camera setup - adjust for responsive canvas
+        // Camera setup - move enemies further from screen
         const width = container.clientWidth || 600;
         const height = container.clientHeight || 600;
         this.threeCamera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000); // Standard FOV
-        this.threeCamera.position.z = 8; // Standard camera distance
+        this.threeCamera.position.z = 20; // Move camera further back
 
         // Renderer setup with better transparency
         this.threeRenderer = new THREE.WebGLRenderer({ 
