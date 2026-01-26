@@ -520,9 +520,11 @@ body {
 
 .enemy-visual {
     position: relative;
-    width: 400px;
-    height: 400px;
+    width: 100vw;
+    height: 60vh;
     margin: 0 auto 15px;
+    max-width: 600px;
+    max-height: 600px;
 }
 
 .enemy-3d-container {

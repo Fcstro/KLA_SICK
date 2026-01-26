@@ -120,11 +120,11 @@ class GamePage {
         this.threeScene = new THREE.Scene();
         this.threeScene.background = null; // Transparent background
 
-        // Camera setup - adjust for MASSIVE models
-        const width = container.clientWidth || 400;
-        const height = container.clientHeight || 400;
-        this.threeCamera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000); // Much narrower FOV
-        this.threeCamera.position.z = 15; // Move camera way back to fit massive models
+        // Camera setup - adjust for responsive canvas
+        const width = container.clientWidth || 600;
+        const height = container.clientHeight || 600;
+        this.threeCamera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000); // Standard FOV
+        this.threeCamera.position.z = 8; // Standard camera distance
 
         // Renderer setup with better transparency
         this.threeRenderer = new THREE.WebGLRenderer({ 
@@ -156,33 +156,14 @@ class GamePage {
     }
 
     setupARLighting() {
-        // Clear existing lights
-        while(this.threeScene.children.length > 0) {
-            this.threeScene.remove(this.threeScene.children[0]);
-        }
+        // Simple, reliable lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        this.threeScene.add(ambientLight);
 
-        // Environmental lighting that matches real world
-        const envLight = new THREE.AmbientLight(0xffffff, 0.3);
-        this.threeScene.add(envLight);
-
-        // Main light simulating sun from above
-        const sunLight = new THREE.DirectionalLight(0xffffff, 0.7);
-        sunLight.position.set(10, 20, 5);
-        sunLight.castShadow = true;
-        sunLight.shadow.mapSize.width = 2048;
-        sunLight.shadow.mapSize.height = 2048;
-        sunLight.shadow.camera.near = 0.5;
-        sunLight.shadow.camera.far = 50;
-        sunLight.shadow.camera.left = -20;
-        sunLight.shadow.camera.right = 20;
-        sunLight.shadow.camera.top = 20;
-        sunLight.shadow.camera.bottom = -20;
-        this.threeScene.add(sunLight);
-
-        // Add subtle environment reflection
-        const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256);
-        const envMap = cubeRenderTarget.texture;
-        this.threeScene.environment = envMap;
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 10, 5);
+        directionalLight.castShadow = true;
+        this.threeScene.add(directionalLight);
     }
 
     setupGroundPlane() {
@@ -207,18 +188,9 @@ class GamePage {
         }
         
         if (this.enemyModel) {
-            // Animated movement in one spot without rotation or scaling
-            const time = Date.now() * 0.001;
-            
-            // Gentle floating motion (up and down only)
-            this.enemyModel.position.y = Math.sin(time * 1.5) * 0.3;
-            
-            // Keep position centered, no side-to-side or forward/backward movement
-            this.enemyModel.position.x = 0;
-            this.enemyModel.position.z = 0;
-            
-            // NO SCALING - keep enemy at fixed size
-            // No rotation - keep original orientation
+            // NO movement - keep enemy completely static
+            // No floating, no breathing, no rotation
+            // Enemy stays at fixed position
         }
         
         if (this.threeRenderer && this.threeScene && this.threeCamera) {
