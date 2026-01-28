@@ -936,25 +936,22 @@ class GamePage {
                     console.log(`✅ SUCCESS: 3D model loaded for ${enemyType}`, gltf);
                     const model = gltf.scene;
                     
-                    // Set different scales for each enemy type - make them HUGE
-                    let scale = 8; // default scale massively increased
-                    if (enemyType === 'class1') { // Goblin - small
+                    // Set different scales for each enemy type
+                    // Goblin < Dragon < Orc
+                    let scale = 8; // default
+                    if (enemyType === 'class1') {          // Goblin - smallest
                         scale = 6;
-                    } else if (enemyType === 'class2') { // Orc - big - MASSIVE
+                    } else if (enemyType === 'class2') {   // Orc - biggest
                         scale = 12;
-                    } else if (enemyType === 'class3') { // Dragon - large
-                        scale = 10;
+                    } else if (enemyType === 'class3') {   // Dragon - medium
+                        scale = 9;
                     }
                     
                     model.scale.set(scale, scale, scale);
                     model.position.set(0, 0, 0);
                     
-                    // Fix model orientation - different rotation for each enemy type
-                    if (enemyType === 'class2') { // Orc - needs different rotation
-                        model.rotation.y = 0; // No rotation needed for Orc
-                    } else {
-                        model.rotation.y = Math.PI; // 180 degrees for Goblin and Dragon
-                    }
+                    // Make all enemies face the camera (no 180° flip)
+                    model.rotation.y = 0;
                     
                     model.castShadow = true;
                     model.receiveShadow = true;
@@ -1155,8 +1152,8 @@ class GamePage {
         this.enemyModel = await this.load3DEnemyModel(enemyType);
         if (this.enemyModel && this.threeScene) {
             // Center the enemy model in front of the camera
-            // Keep it directly in the middle of the Three.js canvas
-            this.enemyModel.position.set(0, 0, -8);
+            // Slightly offset left so it's fully visible on most screens
+            this.enemyModel.position.set(-1.0, 0, -8);
             
             // Add AR integration effects
             this.addAREffects(enemyType);
