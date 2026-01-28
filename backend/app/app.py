@@ -344,17 +344,24 @@ def use_skill():
 def combat_turn():
     try:
         data = request.get_json()
+        print(f"⚔️ Combat turn request: {data}")
         player_id = data["player_id"]
         action = data["action"]
         
         player = player_manager.get_player(player_id)
         if not player:
+            print(f"❌ Player not found: {player_id}")
             return jsonify({"error": "Player not found"}), 400
+        
+        print(f"✅ Player found: {player['character_class']}")
         
         # Check if player is in combat
         combat = combat_system.get_combat(player_id)
         if not combat:
+            print(f"❌ No active combat for player: {player_id}")
             return jsonify({"error": "No active combat"}), 400
+        
+        print(f"✅ Combat found, enemy: {combat['enemy'].get('name', 'Unknown')}")
         
         # Process combat turn based on action
         if action == "attack":
@@ -364,14 +371,19 @@ def combat_turn():
             attack_skill = None
             
             for skill in SKILLS.get(character_class, []):
-                if skill["type"] == "damage" and "damage_multiplier" in skill:
+                # Look for any damage skill (either with damage_multiplier or fixed damage)
+                if skill.get("type") == "damage" and ("damage_multiplier" in skill or "damage" in skill):
                     attack_skill = skill["name"]
+                    print(f"✅ Found attack skill: {attack_skill}")
                     break
             
             if not attack_skill:
+                print(f"❌ No attack skill found for {character_class}")
+                print(f"Available skills: {SKILLS.get(character_class, [])}")
                 return jsonify({"error": "No attack skill found"}), 400
             
             result = combat_system.use_skill(player, attack_skill, combat["enemy"])
+            print(f"⚔️ Attack result: {result}")
             
         elif action == "skill":
             skill_name = data.get("skill_name")
