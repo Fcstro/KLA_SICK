@@ -5,198 +5,331 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AR RPG Adventure</title>
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-    <link rel="stylesheet" href="/static/css/game.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .landing-page {
+            text-align: center;
+            padding: 50px 0;
+        }
+        
+        .title {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        .start-button {
+            background: #FFD700;
+            color: #333;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .start-button:hover {
+            background: #FFA500;
+            transform: scale(1.05);
+        }
+        
+        .game-page {
+            display: none;
+        }
+        
+        .character-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .character-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .character-card:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-5px);
+            border-color: #FFD700;
+        }
+        
+        .character-card.selected {
+            background: rgba(255,215,0,0.3);
+            border-color: #FFD700;
+        }
+        
+        .character-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .character-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .character-stats {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .game-area {
+            display: none;
+        }
+        
+        .stats {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .camera-container {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        #camera {
+            width: 100%;
+            max-width: 400px;
+            height: 300px;
+            background: #000;
+            border-radius: 10px;
+            margin: 0 auto;
+            display: block;
+        }
+        
+        .location-info {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .enemy-info {
+            background: rgba(255,0,0,0.2);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+        
+        .enemy-icon {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+        
+        .health-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FF6B6B, #FF8E8E);
+            transition: width 0.5s ease;
+        }
+        
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .action-button {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E8E);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .action-button:hover {
+            transform: scale(1.05);
+        }
+        
+        .action-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .message {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .error {
+            background: rgba(255,0,0,0.2);
+        }
+        
+        .success {
+            background: rgba(0,255,0,0.2);
+        }
+    </style>
 </head>
 <body>
-    <div class="game-container">
-        <header class="game-header">
-            <h1 class="game-title">⚔️ AR RPG Adventure ⚔️</h1>
-            <p class="game-subtitle">Battle enemies in the real world!</p>
-        </header>
-
+    <div class="container">
+        <!-- Landing Page -->
+        <div id="landingPage" class="landing-page">
+            <h1 class="title">⚔️ AR RPG Adventure ⚔️</h1>
+            <p class="subtitle">Battle enemies in the real world with augmented reality!</p>
+            <button class="start-button" onclick="startGame()">Start Adventure</button>
+        </div>
+        
         <!-- Character Selection -->
-        <section id="characterSelection" class="character-selection">
+        <div id="characterSelection" class="game-page">
             <h2>Choose Your Hero</h2>
-            <div class="character-grid">
-                <div class="character-card" data-character="warrior">
+            <div class="character-selection">
+                <div class="character-card" onclick="selectCharacter('warrior')">
                     <div class="character-icon">⚔️</div>
                     <div class="character-name">Warrior</div>
-                    <div class="character-stats">
-                        HP: 120 | ATK: 15<br>
-                        Skills: Power Strike, Shield Bash, Battle Heal
-                    </div>
+                    <div class="character-stats">HP: 120 | ATK: 15</div>
+                    <div class="character-stats">Skills: Power Strike, Shield Bash, Battle Heal</div>
                 </div>
-                <div class="character-card" data-character="mage">
+                <div class="character-card" onclick="selectCharacter('mage')">
                     <div class="character-icon">🔮</div>
                     <div class="character-name">Mage</div>
-                    <div class="character-stats">
-                        HP: 80 | ATK: 25<br>
-                        Skills: Fireball, Arcane Missiles, Mana Shield
-                    </div>
+                    <div class="character-stats">HP: 80 | ATK: 25</div>
+                    <div class="character-stats">Skills: Fireball, Arcane Missiles, Mana Shield</div>
                 </div>
-                <div class="character-card" data-character="archer">
+                <div class="character-card" onclick="selectCharacter('archer')">
                     <div class="character-icon">🏹</div>
                     <div class="character-name">Archer</div>
-                    <div class="character-stats">
-                        HP: 100 | ATK: 18<br>
-                        Skills: Precise Shot, Rain of Arrows, Nature's Heal
-                    </div>
+                    <div class="character-stats">HP: 100 | ATK: 18</div>
+                    <div class="character-stats">Skills: Precise Shot, Rain of Arrows, Nature's Heal</div>
                 </div>
-                <div class="character-card" data-character="healer">
+                <div class="character-card" onclick="selectCharacter('healer')">
                     <div class="character-icon">💚</div>
                     <div class="character-name">Healer</div>
-                    <div class="character-stats">
-                        HP: 110 | ATK: 12<br>
-                        Skills: Holy Light, Greater Heal, Divine Blessing
-                    </div>
+                    <div class="character-stats">HP: 110 | ATK: 12</div>
+                    <div class="character-stats">Skills: Holy Light, Greater Heal, Divine Blessing</div>
                 </div>
-                <div class="character-card" data-character="rogue">
+                <div class="character-card" onclick="selectCharacter('rogue')">
                     <div class="character-icon">🗡️</div>
                     <div class="character-name">Rogue</div>
-                    <div class="character-stats">
-                        HP: 90 | ATK: 20<br>
-                        Skills: Backstab, Poison Blade, Shadow Mend
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Game Stats -->
-        <section id="gameStats" class="game-stats" style="display: none;">
-            <div class="stat-card">
-                <div class="stat-title">Level</div>
-                <div class="stat-value" id="playerLevel">1</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-title">Health</div>
-                <div class="stat-value" id="playerHP">120/120</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-title">Experience</div>
-                <div class="stat-value" id="playerXP">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-title">Total Kills</div>
-                <div class="stat-value" id="playerKills">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-title">Skill Points</div>
-                <div class="stat-value" id="skillPoints">0</div>
-            </div>
-        </section>
-
-        <!-- Combat Area -->
-        <section id="combatArea" class="combat-area" style="display: none;">
-            <div class="enemy-container">
-                <div class="enemy-name" id="enemyName">No Enemy</div>
-                <div class="enemy-icon" id="enemyIcon">👾</div>
-                
-                <!-- Enemy Health Bar -->
-                <div class="health-bar-container">
-                    <div class="health-bar">
-                        <div class="health-fill" id="enemyHealthFill" style="width: 100%"></div>
-                        <div class="health-text" id="enemyHealthText">100/100 HP</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Skills -->
-            <div class="skills-container" id="skillsContainer">
-                <!-- Skills will be populated here -->
-            </div>
-
-            <!-- Combat Messages -->
-            <div class="combat-messages">
-                <div class="message-toggle">
-                    <span>Combat Log</span>
-                    <button class="toggle-btn" id="toggleMessages">Show All (0)</button>
-                </div>
-                <div id="messagesList">
-                    <!-- Messages will appear here -->
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="action-buttons">
-                <button class="action-btn" id="attackBtn">⚔️ Attack</button>
-                <button class="action-btn" id="healBtn">💚 Heal</button>
-                <button class="action-btn" id="spawnBtn">👾 Spawn Enemy</button>
-                <button class="action-btn" id="locationBtn">📍 Update Location</button>
-            </div>
-        </section>
-
-        <!-- Level Up Modal -->
-        <div id="levelUpModal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <h2>⭐ Level Up! ⭐</h2>
-                <p>Choose your reward:</p>
-                <div class="level-up-choices">
-                    <button class="choice-btn" id="skillUpgradeBtn">
-                        <i class="fas fa-arrow-up"></i>
-                        Skill Upgrade (+1 Skill Point)
-                    </button>
-                    <button class="choice-btn" id="fullHealBtn">
-                        <i class="fas fa-heart"></i>
-                        Full Heal
-                    </button>
+                    <div class="character-stats">HP: 90 | ATK: 20</div>
+                    <div class="character-stats">Skills: Backstab, Poison Blade, Shadow Mend</div>
                 </div>
             </div>
         </div>
+        
+        <!-- Game Area -->
+        <div id="gameArea" class="game-area">
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-label">Level</div>
+                    <div class="stat-value" id="level">1</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">HP</div>
+                    <div class="stat-value" id="hp">100/100</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">XP</div>
+                    <div class="stat-value" id="xp">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Kills</div>
+                    <div class="stat-value" id="kills">0</div>
+                </div>
+            </div>
+            
+            <div class="camera-container">
+                <h3>📷 AR Camera View</h3>
+                <video id="camera" autoplay playsinline></video>
+                <div class="message">
+                    Camera will show AR view with enemies
+                </div>
+            </div>
+            
+            <div class="location-info">
+                <h3>📍 Location Status</h3>
+                <p id="locationStatus">Getting location...</p>
+                <p id="distanceInfo">Distance traveled: 0m</p>
+            </div>
+            
+            <div id="enemyInfo" class="enemy-info">
+                <h3>⚔️ Enemy Encountered!</h3>
+                <div class="enemy-icon" id="enemyIcon">👹</div>
+                <div class="enemy-name" id="enemyName">Goblin</div>
+                <div class="health-bar">
+                    <div class="health-fill" id="enemyHealth" style="width: 100%"></div>
+                </div>
+                <div id="enemyStats">HP: 30/30</div>
+            </div>
+            
+            <div class="actions">
+                <button class="action-button" onclick="playerAttack()" id="attackBtn">⚔️ Attack</button>
+                <button class="action-button" onclick="useSkill()" id="skillBtn">✨ Use Skill</button>
+                <button class="action-button" onclick="heal()" id="healBtn">💚 Heal</button>
+                <button class="action-button" onclick="escape()" id="escapeBtn">🏃 Escape</button>
+            </div>
+            
+            <div id="messageArea"></div>
+        </div>
     </div>
-
-    <style>
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            padding: 30px;
-            border-radius: 20px;
-            text-align: center;
-            max-width: 400px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .level-up-choices {
-            display: flex;
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .choice-btn {
-            flex: 1;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid #FFD700;
-            border-radius: 15px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .choice-btn:hover {
-            background: rgba(255, 215, 0, 0.2);
-            transform: translateY(-3px);
-        }
-
-        .choice-btn i {
-            display: block;
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-    </style>
 
     <script>
         // Game State
@@ -205,364 +338,272 @@
             player: null,
             enemy: null,
             inCombat: false,
-            allMessages: [],
-            showAllMessages: false
+            lastLocation: null,
+            cameraStream: null
         };
 
-        // Character Selection
-        document.querySelectorAll('.character-card').forEach(card => {
-            card.addEventListener('click', function() {
-                const character = this.dataset.character;
-                selectCharacter(character);
-            });
-        });
+        // Start Game
+        function startGame() {
+            document.getElementById('landingPage').style.display = 'none';
+            document.getElementById('characterSelection').style.display = 'block';
+            initCamera();
+        }
 
+        // Initialize Camera
+        async function initCamera() {
+            try {
+                const video = document.getElementById('camera');
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' },
+                    audio: false 
+                });
+                video.srcObject = stream;
+                gameState.cameraStream = stream;
+                showMessage('Camera initialized successfully!', 'success');
+            } catch (error) {
+                console.error('Camera error:', error);
+                showMessage('Camera access denied or not available', 'error');
+                // Fallback: show placeholder
+                document.getElementById('camera').style.display = 'none';
+            }
+        }
+
+        // Select Character
         async function selectCharacter(characterClass) {
             try {
                 const response = await fetch('/select-character', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({character: characterClass})
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ character: characterClass })
                 });
                 
                 const data = await response.json();
+                
                 if (data.status === 'ok') {
                     gameState.playerId = data.player_id;
                     gameState.player = data.player;
                     
-                    // Show game interface
+                    // Update UI
                     document.getElementById('characterSelection').style.display = 'none';
-                    document.getElementById('gameStats').style.display = 'grid';
-                    document.getElementById('combatArea').style.display = 'block';
+                    document.getElementById('gameArea').style.display = 'block';
                     
-                    updatePlayerStats();
-                    loadSkills();
-                    
-                    // Get initial location
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(updateLocation);
-                    }
+                    updateStats();
+                    startLocationTracking();
+                    showMessage(`Selected ${characterClass}! Start moving to find enemies.`, 'success');
+                } else {
+                    showMessage(data.error || 'Failed to select character', 'error');
                 }
             } catch (error) {
-                console.error('Error selecting character:', error);
+                console.error('Character selection error:', error);
+                showMessage('Failed to select character', 'error');
             }
         }
 
-        // Update Player Stats
-        function updatePlayerStats() {
-            if (gameState.player) {
-                document.getElementById('playerLevel').textContent = gameState.player.level;
-                document.getElementById('playerHP').textContent = `${gameState.player.current_hp}/${gameState.player.max_hp}`;
-                document.getElementById('playerXP').textContent = gameState.player.xp;
-                document.getElementById('playerKills').textContent = Object.values(gameState.player.kills).reduce((a, b) => a + b, 0);
-                document.getElementById('skillPoints').textContent = gameState.player.skill_points || 0;
+        // Start Location Tracking
+        function startLocationTracking() {
+            if (!navigator.geolocation) {
+                showMessage('Geolocation not supported', 'error');
+                return;
             }
-        }
 
-        // Load Skills
-        async function loadSkills() {
-            try {
-                const response = await fetch(`/get-skills?player_id=${gameState.playerId}`);
-                const data = await response.json();
-                
-                const skillsContainer = document.getElementById('skillsContainer');
-                skillsContainer.innerHTML = '';
-                
-                data.skills.forEach(skill => {
-                    const skillCard = document.createElement('div');
-                    skillCard.className = `skill-card ${!skill.is_ready ? 'on-cooldown' : ''}`;
-                    skillCard.innerHTML = `
-                        <div class="skill-icon">${getSkillIcon(skill.type)}</div>
-                        <div class="skill-name">${skill.name}</div>
-                        <div class="skill-cooldown">${skill.is_ready ? 'Ready' : `${skill.remaining_cooldown.toFixed(1)}s`}</div>
-                        ${skill.current_level > 0 ? `<div class="skill-level">Lv${skill.current_level}</div>` : ''}
-                    `;
+            navigator.geolocation.watchPosition(
+                async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
                     
-                    if (skill.is_ready) {
-                        skillCard.addEventListener('click', () => useSkill(skill.name));
-                    }
+                    updateLocationStatus(lat, lon);
                     
-                    skillsContainer.appendChild(skillCard);
-                });
-            } catch (error) {
-                console.error('Error loading skills:', error);
+                    // Send location to server
+                    await updateLocation(lat, lon);
+                },
+                (error) => {
+                    console.error('Location error:', error);
+                    showMessage('Location access denied', 'error');
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        // Update Location Status
+        function updateLocationStatus(lat, lon) {
+            const locationStatus = document.getElementById('locationStatus');
+            locationStatus.textContent = `Location: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+            
+            if (gameState.lastLocation) {
+                const distance = calculateDistance(
+                    gameState.lastLocation.lat, 
+                    gameState.lastLocation.lon,
+                    lat, lon
+                );
+                document.getElementById('distanceInfo').textContent = 
+                    `Distance traveled: ${distance.toFixed(1)}m`;
             }
+            
+            gameState.lastLocation = { lat, lon };
         }
 
-        function getSkillIcon(skillType) {
-            const icons = {
-                'damage': '⚔️',
-                'heal': '💚',
-                'buff': '✨'
-            };
-            return icons[skillType] || '🎯';
+        // Calculate Distance
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371000; // Earth's radius in meters
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
         }
 
-        // Use Skill
-        async function useSkill(skillName) {
+        // Update Location on Server
+        async function updateLocation(lat, lon) {
             try {
-                const response = await fetch('/use-skill', {
+                const response = await fetch('/update-location', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        player_id: gameState.playerId,
-                        skill_name: skillName
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        lat: lat, 
+                        lon: lon,
+                        player_id: gameState.playerId 
                     })
                 });
                 
-                const result = await response.json();
+                const data = await response.json();
                 
-                if (result.success) {
-                    addCombatMessages(result.combat_messages || []);
-                    updateEnemyHealth(result.enemy_health_percent);
-                    updatePlayerStats();
-                    
-                    if (result.enemy_defeated) {
-                        gameState.enemy = null;
-                        showEnemyDefeated();
-                    }
-                    
-                    loadSkills(); // Refresh skill cooldowns
+                if (data.spawn) {
+                    // Enemy spawned!
+                    gameState.enemy = data.enemy_stats;
+                    gameState.inCombat = true;
+                    showEnemy(data.enemy_stats);
+                    showMessage(`Enemy encountered: ${data.enemy}!`, 'success');
                 }
             } catch (error) {
-                console.error('Error using skill:', error);
+                console.error('Location update error:', error);
+                // Don't show error for location updates to avoid spam
             }
         }
 
-        // Combat Messages
-        function addCombatMessages(messages) {
-            gameState.allMessages.push(...messages);
-            updateMessageDisplay();
-        }
-
-        function updateMessageDisplay() {
-            const messagesList = document.getElementById('messagesList');
-            const messagesToShow = gameState.showAllMessages ? 
-                gameState.allMessages : 
-                gameState.allMessages.slice(-3);
+        // Show Enemy
+        function showEnemy(enemy) {
+            const enemyInfo = document.getElementById('enemyInfo');
+            enemyInfo.style.display = 'block';
             
-            messagesList.innerHTML = '';
-            messagesToShow.forEach(message => {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message-item ${getMessageType(message)}`;
-                messageDiv.textContent = message;
-                messagesList.appendChild(messageDiv);
-            });
+            document.getElementById('enemyIcon').textContent = 
+                enemy.type === 'class1' ? '👹' : 
+                enemy.type === 'class2' ? '👺' : '🐉';
+            document.getElementById('enemyName').textContent = enemy.name;
             
-            // Update toggle button
-            const toggleBtn = document.getElementById('toggleMessages');
-            toggleBtn.textContent = gameState.showAllMessages ? 
-                `Show Less (${gameState.allMessages.length})` : 
-                `Show All (${gameState.allMessages.length})`;
+            updateEnemyHealth();
         }
 
-        function getMessageType(message) {
-            if (message.includes('damage') || message.includes('Hit')) return 'message-damage';
-            if (message.includes('heal') || message.includes('Heal')) return 'message-heal';
-            if (message.includes('buff') || message.includes('reduction') || message.includes('boost')) return 'message-buff';
-            if (message.includes('LEVEL UP')) return 'message-levelup';
-            return '';
+        // Update Enemy Health
+        function updateEnemyHealth() {
+            if (!gameState.enemy) return;
+            
+            const healthPercent = (gameState.enemy.hp / gameState.enemy.max_hp) * 100;
+            document.getElementById('enemyHealth').style.width = healthPercent + '%';
+            document.getElementById('enemyStats').textContent = 
+                `HP: ${gameState.enemy.hp}/${gameState.enemy.max_hp}`;
         }
 
-        // Toggle Messages
-        document.getElementById('toggleMessages').addEventListener('click', function() {
-            gameState.showAllMessages = !gameState.showAllMessages;
-            updateMessageDisplay();
-        });
-
-        // Enemy Health
-        function updateEnemyHealth(healthPercent) {
-            if (healthPercent !== undefined) {
-                const healthFill = document.getElementById('enemyHealthFill');
-                const healthText = document.getElementById('enemyHealthText');
-                
-                healthFill.style.width = `${healthPercent}%`;
-                if (gameState.enemy) {
-                    healthText.textContent = `${gameState.enemy.hp}/${gameState.enemy.max_hp} HP`;
-                }
+        // Player Attack
+        async function playerAttack() {
+            if (!gameState.inCombat) {
+                showMessage('No enemy to attack!', 'error');
+                return;
             }
-        }
-
-        function showEnemyDefeated() {
-            document.getElementById('enemyName').textContent = 'Enemy Defeated!';
-            document.getElementById('enemyIcon').textContent = '💀';
-            document.getElementById('enemyHealthFill').style.width = '0%';
-        }
-
-        // Attack Button
-        document.getElementById('attackBtn').addEventListener('click', async function() {
-            if (!gameState.inCombat) return;
             
             try {
                 const response = await fetch('/player-attack', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({player_id: gameState.playerId})
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ player_id: gameState.playerId })
                 });
                 
-                const result = await response.json();
-                addCombatMessages(result.combat_messages || []);
-                updateEnemyHealth(result.enemy_stats?.health_percent);
-                updatePlayerStats();
+                const data = await response.json();
                 
-                if (result.enemy_defeated) {
-                    showEnemyDefeated();
+                if (data.enemy_defeated) {
+                    gameState.enemy = null;
+                    gameState.inCombat = false;
+                    document.getElementById('enemyInfo').style.display = 'none';
+                    showMessage(`Enemy defeated! +${data.xp_gained} XP`, 'success');
+                    updateStats();
+                } else {
+                    gameState.enemy = data.enemy_stats;
+                    updateEnemyHealth();
+                    updateStats();
+                    
+                    if (data.player_defeated) {
+                        showMessage('You have been defeated!', 'error');
+                        gameState.inCombat = false;
+                    }
                 }
             } catch (error) {
-                console.error('Error attacking:', error);
+                console.error('Attack error:', error);
+                showMessage('Attack failed', 'error');
             }
-        });
+        }
 
-        // Heal Button
-        document.getElementById('healBtn').addEventListener('click', async function() {
+        // Use Skill
+        async function useSkill() {
+            showMessage('Skill system coming soon!', 'success');
+        }
+
+        // Heal
+        async function heal() {
             try {
                 const response = await fetch('/heal', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({player_id: gameState.playerId})
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ player_id: gameState.playerId })
                 });
                 
-                const result = await response.json();
-                if (result.success) {
-                    addCombatMessages([`💚 Healed for ${result.healed} HP!`]);
-                    updatePlayerStats();
-                }
+                const data = await response.json();
+                updateStats();
+                showMessage(`Healed ${data.healed} HP!`, 'success');
             } catch (error) {
-                console.error('Error healing:', error);
+                console.error('Heal error:', error);
+                showMessage('Heal failed', 'error');
             }
-        });
-
-        // Spawn Enemy Button
-        document.getElementById('spawnBtn').addEventListener('click', async function() {
-            try {
-                const response = await fetch('/spawn-enemy', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        player_id: gameState.playerId,
-                        enemy_type: 'class1'
-                    })
-                });
-                
-                const result = await response.json();
-                if (result.spawn) {
-                    gameState.enemy = result.enemy_stats;
-                    gameState.inCombat = true;
-                    
-                    document.getElementById('enemyName').textContent = result.enemy_stats.name;
-                    document.getElementById('enemyIcon').textContent = getEnemyIcon(result.enemy);
-                    updateEnemyHealth(100);
-                    
-                    addCombatMessages([`👾 ${result.enemy_stats.name} appeared!`]);
-                }
-            } catch (error) {
-                console.error('Error spawning enemy:', error);
-            }
-        });
-
-        function getEnemyIcon(enemyType) {
-            const icons = {
-                'class1': '👹',
-                'class2': '👺',
-                'class3': '🐉'
-            };
-            return icons[enemyType] || '👾';
+        // Update Stats
+        function updateStats() {
+            if (!gameState.player) return;
+            
+            document.getElementById('level').textContent = gameState.player.level;
+            document.getElementById('hp').textContent = 
+                `${gameState.player.current_hp}/${gameState.player.max_hp}`;
+            document.getElementById('xp').textContent = gameState.player.xp;
+            
+            const totalKills = Object.values(gameState.player.kills).reduce((a, b) => a + b, 0);
+            document.getElementById('kills').textContent = totalKills;
         }
 
-        // Update Location
-        async function updateLocation(position) {
-            if (!gameState.playerId) return;
+        // Show Message
+        function showMessage(text, type = 'info') {
+            const messageArea = document.getElementById('messageArea');
+            messageArea.innerHTML = `<div class="message ${type}">${text}</div>`;
             
-            const lat = position?.coords?.latitude || 40.7128; // Default to NYC
-            const lon = position?.coords?.longitude || -74.0060;
-            
-            try {
-                const response = await fetch('/update-location', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        player_id: gameState.playerId,
-                        lat: lat,
-                        lon: lon
-                    })
-                });
-                
-                const result = await response.json();
-                if (result.spawn) {
-                    gameState.enemy = result.enemy_stats;
-                    gameState.inCombat = true;
-                    
-                    document.getElementById('enemyName').textContent = result.enemy_stats.name;
-                    document.getElementById('enemyIcon').textContent = getEnemyIcon(result.enemy);
-                    updateEnemyHealth(100);
-                    
-                    let spawnMessage = `👾 ${result.enemy_stats.name} appeared!`;
-                    if (result.ar_location) {
-                        spawnMessage += ` at ${result.ar_location.poi_name}`;
-                    }
-                    addCombatMessages([spawnMessage]);
-                }
-            } catch (error) {
-                console.error('Error updating location:', error);
-            }
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                messageArea.innerHTML = '';
+            }, 3000);
         }
 
-        document.getElementById('locationBtn').addEventListener('click', function() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(updateLocation);
-            } else {
-                updateLocation(); // Use default location
-            }
-        });
-
-        // Level Up Modal
-        document.getElementById('skillUpgradeBtn').addEventListener('click', async function() {
-            try {
-                const response = await fetch('/level-up-reward', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        player_id: gameState.playerId,
-                        reward_type: 'skill_upgrade'
-                    })
-                });
-                
-                const result = await response.json();
-                if (result.success) {
-                    document.getElementById('levelUpModal').style.display = 'none';
-                    updatePlayerStats();
-                    loadSkills();
-                    addCombatMessages(['⭐ Skill point earned!']);
-                }
-            } catch (error) {
-                console.error('Error claiming level up reward:', error);
-            }
-        });
-
-        document.getElementById('fullHealBtn').addEventListener('click', async function() {
-            try {
-                const response = await fetch('/level-up-reward', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        player_id: gameState.playerId,
-                        reward_type: 'full_heal'
-                    })
-                });
-                
-                const result = await response.json();
-                if (result.success) {
-                    document.getElementById('levelUpModal').style.display = 'none';
-                    updatePlayerStats();
-                    addCombatMessages(['💚 Fully healed!']);
-                }
-            } catch (error) {
-                console.error('Error claiming level up reward:', error);
-            }
-        });
-
-        // Initialize
-        updateMessageDisplay();
+        // Initialize on load
+        window.onload = function() {
+            showMessage('Welcome to AR RPG Adventure!', 'success');
+        };
     </script>
 </body>
 </html>

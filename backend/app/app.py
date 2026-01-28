@@ -107,10 +107,16 @@ def select_character():
 
 @app.route("/update-location", methods=["POST"])
 @limiter.limit("60 per minute")
-@validate_json_data(["lat", "lon"])
 def update_location():
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({"error": "Invalid JSON data"}), 400
+            
+        # Validate required fields
+        if "lat" not in data or "lon" not in data:
+            return jsonify({"error": "Missing required fields: lat, lon"}), 400
+            
         player_id = get_or_create_player_id(data)
         lat, lon = float(data["lat"]), float(data["lon"])
         
