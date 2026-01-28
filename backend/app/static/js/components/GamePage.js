@@ -41,34 +41,8 @@ class GamePage {
             GAME_CONSTANTS: null
         };
         
-        // Character Abilities
-        this.characterAbilities = {
-            warrior: {
-                attack: 'Power Strike',
-                skill: 'Shield Bash',
-                heal: 'Battle Heal'
-            },
-            mage: {
-                attack: 'Fireball',
-                skill: 'Arcane Missiles',
-                heal: 'Mana Shield'
-            },
-            archer: {
-                attack: 'Precise Shot',
-                skill: 'Rain of Arrows',
-                heal: 'Nature\'s Heal'
-            },
-            healer: {
-                attack: 'Holy Light',
-                skill: 'Divine Blessing',
-                heal: 'Greater Heal'
-            },
-            rogue: {
-                attack: 'Backstab',
-                skill: 'Poison Blade',
-                heal: 'Shadow Mend'
-            }
-        };
+        // Character Abilities (will be populated from backend config)
+        this.characterAbilities = {};
     }
 
     async render() {
