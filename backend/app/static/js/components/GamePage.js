@@ -287,17 +287,64 @@ class GamePage {
 
     async setupCamera() {
         try {
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                this.cameraStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment' }
-                });
-                document.getElementById("cam").srcObject = this.cameraStream;
-            } else {
-                throw new Error("Camera API not available");
+            console.log('🎥 Setting up AR camera...');
+            
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error("Camera API not available in this browser");
             }
+            
+            // Request camera permission with environment-facing camera
+            this.cameraStream = await navigator.mediaDevices.getUserMedia({
+                video: { 
+                    facingMode: 'environment',
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                }
+            });
+            
+            const videoElement = document.getElementById("cam");
+            if (videoElement) {
+                videoElement.srcObject = this.cameraStream;
+                
+                // Wait for video to be ready
+                videoElement.onloadedmetadata = () => {
+                    videoElement.play();
+                    console.log('🎥 AR camera started successfully!');
+                };
+                
+                // Ensure video is visible
+                videoElement.style.display = 'block';
+                videoElement.style.width = '100%';
+                videoElement.style.height = '100%';
+                videoElement.style.objectFit = 'cover';
+                
+                this.showMessage('🎥 AR camera activated!', 'success');
+            } else {
+                throw new Error("Camera video element not found");
+            }
+            
         } catch (err) {
-            console.log("Camera access denied:", err);
-            document.getElementById("cam").style.display = "none";
+            console.error("❌ Camera setup failed:", err);
+            
+            // Handle specific permission errors
+            if (err.name === 'NotAllowedError') {
+                this.showMessage('📵 Camera permission denied. Please allow camera access for AR experience.', 'error');
+            } else if (err.name === 'NotFoundError') {
+                this.showMessage('📵 No camera found. Please ensure your device has a camera.', 'error');
+            } else if (err.name === 'NotReadableError') {
+                this.showMessage('📵 Camera is already in use by another application.', 'error');
+            } else {
+                this.showMessage(`📵 Camera error: ${err.message}`, 'error');
+            }
+            
+            // Hide camera element on error
+            const videoElement = document.getElementById("cam");
+            if (videoElement) {
+                videoElement.style.display = 'none';
+            }
+            
+            // Show fallback message
+            this.showMessage('🎮 Game running without AR camera. Use debug modal to spawn enemies.', 'warning');
         }
     }
 

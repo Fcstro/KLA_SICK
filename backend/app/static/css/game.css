@@ -415,8 +415,9 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    background: rgba(0,0,0,0.3);
-    backdrop-filter: blur(10px);
+    background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(20,20,40,0.9));
+    backdrop-filter: blur(20px);
+    border-bottom: 2px solid rgba(255,215,0,0.3);
     padding: 15px 20px;
     z-index: 10;
     display: flex;
@@ -494,7 +495,7 @@ body {
 
 .player-stats {
     position: absolute;
-    top: 80px;
+    top: 120px;  /* Lowered from 80px to give more space from header */
     left: 20px;
     right: 20px;
     display: grid;
@@ -507,6 +508,7 @@ body {
     border-radius: 15px;
     padding: 15px;
     border: 1px solid rgba(255,215,0,0.3);
+    z-index: 5;  /* Lower z-index than header */
 }
 
 .hp-container {
