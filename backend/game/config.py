@@ -15,30 +15,30 @@ CHARACTERS = {
 
 # Skills configuration - 3 skills per character with one heal/buff
 SKILLS = {
-    "warrior": [
+    "Volta": [
         {"name": "Power Strike", "damage_multiplier": 2.0, "cooldown": 10, "description": "Double damage attack", "type": "damage"},
         {"name": "Shield Bash", "damage": 15, "cooldown": 8, "description": "Stun enemy for 1 turn", "type": "damage"},
         {"name": "Battle Heal", "heal_amount": 40, "cooldown": 15, "description": "Restore 40 HP", "type": "heal"}
     ],
-    "mage": [
+    "Pedro Penduko": [
         {"name": "Fireball", "damage_multiplier": 2.5, "cooldown": 12, "description": "Powerful magic attack", "type": "damage"},
         {"name": "Arcane Missiles", "damage": 35, "cooldown": 10, "description": "Multiple magic projectiles", "type": "damage"},
         {"name": "Mana Shield", "damage_reduction": 0.5, "duration": 3, "cooldown": 20, "description": "Reduce damage by 50% for 3 turns", "type": "buff"}
     ],
-    "archer": [
+    "Kidlat": [
         {"name": "Precise Shot", "damage_multiplier": 1.8, "cooldown": 8, "description": "High accuracy attack", "type": "damage"},
-        {"name": "Rain of Arrows", "damage": 30, "cooldown": 15, "description": "Area damage attack", "type": "damage"},
+        {"name": "Anti-Bastos", "damage": 30, "cooldown": 15, "description": "Area damage attack", "type": "damage"},
         {"name": "Nature's Heal", "heal_amount": 35, "cooldown": 12, "description": "Restore 35 HP", "type": "heal"}
     ],
-    "healer": [
-        {"name": "Holy Light", "damage": 25, "cooldown": 10, "description": "Holy damage attack", "type": "damage"},
-        {"name": "Greater Heal", "heal_amount": 60, "cooldown": 15, "description": "Restore 60 HP", "type": "heal"},
-        {"name": "Divine Blessing", "damage_boost": 1.5, "duration": 4, "cooldown": 25, "description": "Increase damage by 50% for 4 turns", "type": "buff"}
+    "Victor Magtanggol": [
+        {"name": "aldenkantotmaine", "damage": 25, "cooldown": 10, "description": "Holy damage attack", "type": "damage"},
+        {"name": "ALDUB 4Ever", "heal_amount": 60, "cooldown": 15, "description": "Restore 60 HP", "type": "heal"},
+        {"name": "Pabebe Wave", "damage_boost": 1.5, "duration": 4, "cooldown": 25, "description": "Increase damage by 50% for 4 turns", "type": "buff"}
     ],
-    "rogue": [
-        {"name": "Backstab", "damage_multiplier": 3.0, "cooldown": 15, "description": "Critical strike from behind", "type": "damage"},
-        {"name": "Poison Blade", "damage": 20, "poison_damage": 5, "duration": 3, "cooldown": 12, "description": "Attack with poison damage over 3 turns", "type": "damage"},
-        {"name": "Shadow Mend", "heal_amount": 30, "cooldown": 10, "description": "Restore 30 HP", "type": "heal"}
+    "WanPakMan": [
+        {"name": "Asim Kilig", "damage_multiplier": 3.0, "cooldown": 15, "description": "Critical strike from behind", "type": "damage"},
+        {"name": "Figthing Senator", "damage": 20, "poison_damage": 5, "duration": 3, "cooldown": 12, "description": "Attack with poison damage over 3 turns", "type": "damage"},
+        {"name": "Go Manny", "heal_amount": 30, "cooldown": 10, "description": "Restore 30 HP", "type": "heal"}
     ]
 }
 

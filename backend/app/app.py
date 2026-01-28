@@ -77,6 +77,37 @@ def get_or_create_player_id(request_data=None):
 def index():
     return render_template("index.html")
 
+@app.route("/config/enemy-stats", methods=["GET"])
+def get_enemy_stats():
+    """Serve enemy statistics configuration"""
+    return jsonify(ENEMY_STATS)
+
+@app.route("/config/characters", methods=["GET"])
+def get_characters():
+    """Serve character statistics configuration"""
+    return jsonify(CHARACTERS)
+
+@app.route("/config/skills", methods=["GET"])
+def get_skills():
+    """Serve skills configuration"""
+    return jsonify(SKILLS)
+
+@app.route("/config/spawn-config", methods=["GET"])
+def get_spawn_config():
+    """Serve spawn configuration"""
+    return jsonify(SPAWN_CONFIG)
+
+@app.route("/config/game-constants", methods=["GET"])
+def get_game_constants():
+    """Serve game constants configuration"""
+    return jsonify({
+        "HEAL_COOLDOWN": HEAL_COOLDOWN,
+        "HEAL_AMOUNT": HEAL_AMOUNT,
+        "CRIT_CHANCE": CRIT_CHANCE,
+        "CRIT_MULTIPLIER": CRIT_MULTIPLIER,
+        "DODGE_CHANCE": DODGE_CHANCE
+    })
+
 @app.route("/select-character", methods=["POST"])
 @limiter.limit("10 per minute")
 @validate_json_data(["character"])

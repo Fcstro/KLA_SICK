@@ -32,6 +32,15 @@ class GamePage {
             characterClass: null
         };
         
+        // Backend Configuration (will be fetched from server)
+        this.gameConfig = {
+            ENEMY_STATS: null,
+            CHARACTERS: null,
+            SKILLS: null,
+            SPAWN_CONFIG: null,
+            GAME_CONSTANTS: null
+        };
+        
         // Character Abilities
         this.characterAbilities = {
             warrior: {
@@ -152,7 +161,91 @@ class GamePage {
         this.initializeGame();
     }
 
+    async fetchGameConfig() {
+        try {
+            console.log('🔄 Fetching game configuration from backend...');
+            
+            // Fetch all configuration endpoints
+            const [enemyStats, characters, skills, spawnConfig, gameConstants] = await Promise.all([
+                fetch('/config/enemy-stats').then(r => r.json()),
+                fetch('/config/characters').then(r => r.json()),
+                fetch('/config/skills').then(r => r.json()),
+                fetch('/config/spawn-config').then(r => r.json()),
+                fetch('/config/game-constants').then(r => r.json())
+            ]);
+            
+            this.gameConfig = {
+                ENEMY_STATS: enemyStats,
+                CHARACTERS: characters,
+                SKILLS: skills,
+                SPAWN_CONFIG: spawnConfig,
+                GAME_CONSTANTS: gameConstants
+            };
+            
+            console.log('✅ Game configuration loaded:', this.gameConfig);
+            
+            // Update character abilities based on fetched config
+            this.updateCharacterAbilities();
+            
+        } catch (error) {
+            console.error('❌ Failed to fetch game config:', error);
+            // Fallback to hardcoded values if backend fails
+            this.initializeFallbackConfig();
+        }
+    }
+    
+    updateCharacterAbilities() {
+        if (!this.gameConfig.SKILLS) return;
+        
+        this.characterAbilities = {};
+        for (const [characterClass, skills] of Object.entries(this.gameConfig.SKILLS)) {
+            this.characterAbilities[characterClass] = {
+                attack: skills[0]?.name || 'Attack',
+                skill: skills[1]?.name || 'Skill',
+                heal: skills[2]?.name || 'Heal'
+            };
+        }
+    }
+    
+    initializeFallbackConfig() {
+        console.log('🔄 Using fallback configuration...');
+        // Fallback to existing hardcoded values
+        this.gameConfig = {
+            ENEMY_STATS: {
+                "class1": {"hp": 30, "atk": 5, "name": "Goblin", "xp_reward": 10},
+                "class2": {"hp": 50, "atk": 10, "name": "Orc", "xp_reward": 25},
+                "class3": {"hp": 100, "atk": 15, "name": "Dragon", "xp_reward": 50}
+            },
+            CHARACTERS: {
+                "warrior": {"hp": 120, "atk": 15, "class": "warrior"},
+                "mage": {"hp": 80, "atk": 25, "class": "mage"},
+                "archer": {"hp": 100, "atk": 18, "class": "archer"},
+                "healer": {"hp": 110, "atk": 12, "class": "healer"},
+                "rogue": {"hp": 90, "atk": 20, "class": "rogue"}
+            },
+            SKILLS: null, // Will use existing hardcoded skills
+            SPAWN_CONFIG: {
+                "spawn_distance": 5,
+                "spawn_probability": 1,
+                "enemy_weights": {"class1": 0.5, "class2": 0.3, "class3": 0.2},
+                "max_enemies_per_area": 3,
+                "spawn_cooldown": 10,
+                "area_radius": 50
+            },
+            GAME_CONSTANTS: {
+                "HEAL_COOLDOWN": 10,
+                "HEAL_AMOUNT": 25,
+                "CRIT_CHANCE": 0.1,
+                "CRIT_MULTIPLIER": 2.0,
+                "DODGE_CHANCE": 0.05
+            }
+        };
+    }
+    
     async initializeGame() {
+        // Fetch game configuration from backend first
+        await this.fetchGameConfig();
+        
         // Load player data from localStorage
         this.loadPlayerData();
         await this.setupCamera();
@@ -604,12 +697,18 @@ class GamePage {
             
             // Only spawn if not in combat
             if (!this.gameState.inCombat) {
-                // Use SPAWN_CONFIG weights for proper enemy selection
-                const enemyWeights = {
-                    'class1': 0.5,  // 50% chance for Goblin
-                    'class2': 0.3,  // 30% chance for Orc  
-                    'class3': 0.2   // 20% chance for Dragon
-                };
+                // Use fetched SPAWN_CONFIG weights for proper enemy selection
+                let enemyWeights;
+                if (this.gameConfig.SPAWN_CONFIG && this.gameConfig.SPAWN_CONFIG.enemy_weights) {
+                    enemyWeights = this.gameConfig.SPAWN_CONFIG.enemy_weights;
+                } else {
+                    // Fallback weights
+                    enemyWeights = {
+                        'class1': 0.5,  // 50% chance for Goblin
+                        'class2': 0.3,  // 30% chance for Orc  
+                        'class3': 0.2   // 20% chance for Dragon
+                    };
+                }
                 
                 // Select enemy based on weights
                 const enemyTypes = Object.keys(enemyWeights);
@@ -626,7 +725,7 @@ class GamePage {
                     'class3': 'Dragon'
                 };
                 const modeName = this.autoSpawnMode === 'fast' ? 'Fast' : 'Time-based';
-                console.log(`👹 ${modeName} auto-spawned: ${enemyNames[randomEnemy]} (weight-based selection)`);
+                console.log(`👹 ${modeName} auto-spawned: ${enemyNames[randomEnemy]} (config-based selection)`);
             }
             
             // Schedule next spawn
@@ -1242,6 +1341,10 @@ class GamePage {
     }
 
     getEnemyName(enemyType) {
+        if (this.gameConfig.ENEMY_STATS && this.gameConfig.ENEMY_STATS[enemyType]) {
+            return this.gameConfig.ENEMY_STATS[enemyType].name;
+        }
+        // Fallback
         const names = {
             class1: 'Goblin',
             class2: 'Orc',
@@ -1251,6 +1354,10 @@ class GamePage {
     }
 
     getDefaultEnemyHP(enemyType) {
+        if (this.gameConfig.ENEMY_STATS && this.gameConfig.ENEMY_STATS[enemyType]) {
+            return this.gameConfig.ENEMY_STATS[enemyType].hp;
+        }
+        // Fallback
         const hp = {
             class1: 30,
             class2: 50,
@@ -1260,12 +1367,29 @@ class GamePage {
     }
 
     getDefaultEnemyATK(enemyType) {
+        if (this.gameConfig.ENEMY_STATS && this.gameConfig.ENEMY_STATS[enemyType]) {
+            return this.gameConfig.ENEMY_STATS[enemyType].atk;
+        }
+        // Fallback
         const atk = {
             class1: 5,
             class2: 10,
             class3: 15
         };
         return atk[enemyType] || 5;
+    }
+    
+    getEnemyXPReward(enemyType) {
+        if (this.gameConfig.ENEMY_STATS && this.gameConfig.ENEMY_STATS[enemyType]) {
+            return this.gameConfig.ENEMY_STATS[enemyType].xp_reward;
+        }
+        // Fallback
+        const xp = {
+            class1: 10,
+            class2: 25,
+            class3: 50
+        };
+        return xp[enemyType] || 10;
     }
 
     async attack(enemy) {
