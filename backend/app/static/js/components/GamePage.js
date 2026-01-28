@@ -308,19 +308,60 @@ class GamePage {
                 }
             });
             
+            console.log('✅ Camera stream obtained:', this.cameraStream);
+            console.log('📹 Stream active:', this.cameraStream.active);
+            console.log('📹 Stream tracks:', this.cameraStream.getTracks().length);
+            
             const videoElement = document.getElementById("cam");
             if (videoElement) {
                 console.log('✅ Video element found:', videoElement);
-                console.log('🎥 Video element styles:', {
+                console.log('🎥 Video element in DOM:', document.contains(videoElement));
+                console.log('🎥 Video element parent:', videoElement.parentElement);
+                console.log('🎥 Video element rect:', videoElement.getBoundingClientRect());
+                
+                // Add immediate visual test - make video element bright green to verify it's visible
+                videoElement.style.background = 'lime';
+                setTimeout(() => {
+                    videoElement.style.background = 'black';
+                }, 1000);
+                
+                console.log('🎥 Video element styles before:', {
                     display: getComputedStyle(videoElement).display,
                     width: getComputedStyle(videoElement).width,
                     height: getComputedStyle(videoElement).height,
                     zIndex: getComputedStyle(videoElement).zIndex,
-                    opacity: getComputedStyle(videoElement).opacity
+                    opacity: getComputedStyle(videoElement).opacity,
+                    visibility: getComputedStyle(videoElement).visibility
                 });
                 
+                // Immediately attach stream and force visibility
                 videoElement.srcObject = this.cameraStream;
                 console.log('✅ Camera stream attached to video element');
+                
+                // Force video element to be visible immediately
+                videoElement.style.cssText = `
+                    display: block !important;
+                    visibility: visible !important;
+                    opacity: 1 !important;
+                    width: 100% !important;
+                    height: 100% !important;
+                    object-fit: cover !important;
+                    position: absolute !important;
+                    top: 0 !important;
+                    left: 0 !important;
+                    z-index: 1 !important;
+                    background: black !important;
+                `;
+                
+                console.log('🎥 Forced video styles applied with cssText');
+                console.log('🎥 Video element styles after:', {
+                    display: getComputedStyle(videoElement).display,
+                    width: getComputedStyle(videoElement).width,
+                    height: getComputedStyle(videoElement).height,
+                    zIndex: getComputedStyle(videoElement).zIndex,
+                    opacity: getComputedStyle(videoElement).opacity,
+                    visibility: getComputedStyle(videoElement).visibility
+                });
                 
                 // Wait for video to be ready
                 videoElement.onloadedmetadata = () => {
@@ -329,6 +370,7 @@ class GamePage {
                     // Try to play immediately
                     videoElement.play().then(() => {
                         console.log('✅ Video play successful');
+                        this.showMessage('🎥 AR camera activated!', 'success');
                     }).catch(err => {
                         console.error('❌ Video play failed:', err);
                         console.log('🔄 Attempting to play with user interaction...');
@@ -352,20 +394,6 @@ class GamePage {
                     
                     console.log('🎥 AR camera started successfully!');
                 };
-                
-                // Ensure video is visible - force override any conflicting styles
-                videoElement.style.display = 'block !important';
-                videoElement.style.visibility = 'visible !important';
-                videoElement.style.opacity = '1 !important';
-                videoElement.style.width = '100% !important';
-                videoElement.style.height = '100% !important';
-                videoElement.style.objectFit = 'cover !important';
-                videoElement.style.position = 'absolute !important';
-                videoElement.style.top = '0 !important';
-                videoElement.style.left = '0 !important';
-                videoElement.style.zIndex = '1 !important';
-                
-                console.log('🎥 Forced video styles applied');
                 
                 // Add a test background to verify video element visibility
                 setTimeout(() => {
@@ -1640,15 +1668,22 @@ class GamePage {
         if (!this.gameState.player) return;
         
         const hpPercent = (this.gameState.player.current_hp / this.gameState.player.max_hp) * 100;
-        document.getElementById('playerHpFill').style.width = hpPercent + '%';
-        document.getElementById('playerHpText').textContent = 
+        const playerHpFill = document.getElementById('playerHpFill');
+        const playerHpText = document.getElementById('playerHpText');
+        
+        if (playerHpFill) playerHpFill.style.width = hpPercent + '%';
+        if (playerHpText) playerHpText.textContent = 
             `${this.gameState.player.current_hp}/${this.gameState.player.max_hp}`;
         
-        document.getElementById('player-level').textContent = this.gameState.player.level;
-        document.getElementById('player-xp').textContent = this.gameState.player.xp;
+        const levelElement = document.getElementById('level');
+        const xpElement = document.getElementById('xp');
+        const killsElement = document.getElementById('kills');
+        
+        if (levelElement) levelElement.textContent = this.gameState.player.level;
+        if (xpElement) xpElement.textContent = this.gameState.player.xp;
         
         const totalKills = Object.values(this.gameState.player.kills).reduce((a, b) => a + b, 0);
-        document.getElementById('player-kills').textContent = totalKills;
+        if (killsElement) killsElement.textContent = totalKills;
     }
 
     updateEnemyHealth() {
