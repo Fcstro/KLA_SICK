@@ -950,8 +950,8 @@ class GamePage {
                     model.scale.set(scale, scale, scale);
                     model.position.set(0, 0, 0);
                     
-                    // Make all enemies face the camera (no 180° flip)
-                    model.rotation.y = 0;
+                    // Flip all models 180° so they face the camera direction
+                    model.rotation.y = Math.PI;
                     
                     model.castShadow = true;
                     model.receiveShadow = true;
@@ -1152,8 +1152,8 @@ class GamePage {
         this.enemyModel = await this.load3DEnemyModel(enemyType);
         if (this.enemyModel && this.threeScene) {
             // Center the enemy model in front of the camera
-            // Slightly offset left so it's fully visible on most screens
-            this.enemyModel.position.set(-1.0, 0, -8);
+            // Stronger left offset so it's fully visible on most screens
+            this.enemyModel.position.set(-2.0, 0, -8);
             
             // Add AR integration effects
             this.addAREffects(enemyType);

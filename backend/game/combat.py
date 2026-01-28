@@ -2,6 +2,7 @@ import random
 import time
 from typing import Dict, Any, Tuple, Optional
 from game.config import CRIT_CHANCE, CRIT_MULTIPLIER, DODGE_CHANCE, SKILLS
+from game.player import player_manager
 
 class CombatSystem:
     def __init__(self):
