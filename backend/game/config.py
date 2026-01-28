@@ -62,8 +62,8 @@ LEVEL_UP_REWARDS = {
 
 # Game balance settings
 SPAWN_DISTANCE_THRESHOLD = 5  # meters
-MIN_TRAVEL_DISTANCE = 10  # meters for guaranteed spawn chance
-SPAWN_RATE = 0.8
+MIN_TRAVEL_DISTANCE = 25  # meters for guaranteed spawn chance (increased even more)
+SPAWN_RATE = 0.1  # Reduced to 0.1 (10% chance - much much lower)
 HEAL_COOLDOWN = 10  # seconds
 HEAL_AMOUNT = 25
 CRIT_CHANCE = 0.1

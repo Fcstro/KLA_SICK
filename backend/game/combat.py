@@ -124,8 +124,12 @@ class CombatSystem:
             "success": True,
             "skill_name": skill_name,
             "description": skill["description"],
-            "skill_level": skill.get("current_level", 0)
+            "skill_level": skill.get("current_level", 0),
+            "combat_messages": []
         }
+        
+        # Add skill usage message
+        result["combat_messages"].append(f"✨ {skill_name} used!")
         
         # Handle different skill types
         if "damage_multiplier" in skill:
@@ -145,8 +149,10 @@ class CombatSystem:
                 result.update({
                     "damage": damage,
                     "enemy_hp": enemy["hp"],
-                    "enemy_defeated": enemy["hp"] <= 0
+                    "enemy_defeated": enemy["hp"] <= 0,
+                    "enemy_health_percent": round((enemy["hp"] / enemy["max_hp"]) * 100, 1)
                 })
+                result["combat_messages"].append(f"⚔️ {skill_name} deals {damage} damage!")
         
         elif "damage" in skill:
             # Fixed damage skill (with poison effect possible)
@@ -164,14 +170,17 @@ class CombatSystem:
                 result.update({
                     "damage": damage,
                     "enemy_hp": enemy["hp"],
-                    "enemy_defeated": enemy["hp"] <= 0
+                    "enemy_defeated": enemy["hp"] <= 0,
+                    "enemy_health_percent": round((enemy["hp"] / enemy["max_hp"]) * 100, 1)
                 })
+                result["combat_messages"].append(f"⚔️ {skill_name} deals {damage} damage!")
                 
                 # Handle poison effect
                 if "poison_damage" in skill and "duration" in skill:
                     poison_total = skill["poison_damage"] * skill["duration"]
                     result["poison_damage"] = poison_total
                     result["poison_duration"] = skill["duration"]
+                    result["combat_messages"].append(f"☠️ Poison applied! {poison_total} damage over {skill['duration']} turns")
         
         elif "heal_amount" in skill:
             # Healing skill
@@ -181,6 +190,7 @@ class CombatSystem:
                 "healed": heal_amount,
                 "current_hp": player["current_hp"]
             })
+            result["combat_messages"].append(f"💚 Healed for {heal_amount} HP!")
         
         elif "damage_reduction" in skill:
             # Damage reduction buff
@@ -195,6 +205,7 @@ class CombatSystem:
                 "damage_reduction": skill["damage_reduction"],
                 "duration": skill.get("duration", 3)
             })
+            result["combat_messages"].append(f"🛡️ Damage reduction activated! {int(skill['damage_reduction']*100)}% less damage for {skill.get('duration', 3)} turns")
         
         elif "damage_boost" in skill:
             # Damage boost buff
@@ -209,10 +220,12 @@ class CombatSystem:
                 "damage_boost": skill["damage_boost"],
                 "duration": skill.get("duration", 4)
             })
+            result["combat_messages"].append(f"⚡ Damage boost activated! +{int((skill['damage_boost']-1)*100)}% damage for {skill.get('duration', 4)} turns")
         
         elif "escape" in skill:
             # Escape skill
             result["escaped"] = True
+            result["combat_messages"].append(f"🏃 Successfully escaped from combat!")
         
         return result
     
@@ -250,20 +263,38 @@ class CombatSystem:
         enemy = combat["enemy"]
         combat["turn_count"] += 1
         
+        # Calculate enemy health percentage
+        enemy_health_percent = (enemy["hp"] / enemy["max_hp"]) * 100
+        
         # Player attacks first (with buffs applied)
         attack_result = self.player_attack(player, enemy)
         
         result = {
             "player_attack": attack_result,
-            "enemy_stats": enemy,
-            "active_buffs": player_manager.get_active_buffs(player_id)
+            "enemy_stats": {
+                **enemy,
+                "health_percent": round(enemy_health_percent, 1)
+            },
+            "active_buffs": player_manager.get_active_buffs(player_id),
+            "combat_messages": []
         }
+        
+        # Add combat messages
+        if attack_result.get("hit"):
+            if attack_result.get("is_critical"):
+                result["combat_messages"].append(f"💥 CRITICAL HIT! {attack_result['damage']} damage!")
+            else:
+                result["combat_messages"].append(f"⚔️ Hit for {attack_result['damage']} damage!")
+        else:
+            result["combat_messages"].append(f"❌ Missed!")
         
         # Check if enemy is defeated
         if attack_result.get("enemy_defeated", False):
             from game.config import ENEMY_STATS
             enemy_type = enemy["type"]
             player["kills"][enemy_type] += 1
+            
+            result["combat_messages"].append(f"🎉 {enemy['name']} defeated!")
             
             # Add XP reward
             xp_result = player_manager.add_xp(player["id"], ENEMY_STATS[enemy_type]["xp_reward"])
@@ -276,6 +307,9 @@ class CombatSystem:
                 "skill_points": xp_result["skill_points"]
             })
             
+            if xp_result["leveled_up"]:
+                result["combat_messages"].append(f"⭐ LEVEL UP! You are now level {xp_result['level']}!")
+            
             self.end_combat(player_id)
         else:
             # Enemy counter-attacks (with player defense buffs)
@@ -287,7 +321,9 @@ class CombatSystem:
                 player["current_hp"] = max(0, player["current_hp"])
                 
                 enemy_attack_result["damage"] = final_damage
-                enemy_attack_result["message"] = f"Enemy attacks for {final_damage} damage!"
+                result["combat_messages"].append(f"👹 Enemy hits for {final_damage} damage!")
+            else:
+                result["combat_messages"].append(f"🛡️ Dodged enemy attack!")
             
             result.update({
                 "enemy_attack": enemy_attack_result,
@@ -296,6 +332,7 @@ class CombatSystem:
             })
             
             if player["current_hp"] <= 0:
+                result["combat_messages"].append(f"💀 You have been defeated!")
                 self.end_combat(player_id)
         
         return result
