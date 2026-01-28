@@ -1,5 +1,5 @@
 from typing import Dict, Any, List
-from .config import ENEMY_STATS
+from game.config import ENEMY_STATS
 
 class EnemyManager:
     def __init__(self):

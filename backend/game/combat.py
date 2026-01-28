@@ -1,7 +1,7 @@
 import random
 import time
 from typing import Dict, Any, Tuple, Optional
-from .config import CRIT_CHANCE, CRIT_MULTIPLIER, DODGE_CHANCE, SKILLS
+from game.config import CRIT_CHANCE, CRIT_MULTIPLIER, DODGE_CHANCE, SKILLS
 
 class CombatSystem:
     def __init__(self):

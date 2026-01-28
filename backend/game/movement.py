@@ -2,7 +2,7 @@ import math
 import random
 import time
 from typing import Dict, Any, Optional
-from .config import ENEMY_STATS, SPAWN_DISTANCE_THRESHOLD, MIN_TRAVEL_DISTANCE, SPAWN_RATE
+from game.config import ENEMY_STATS, SPAWN_DISTANCE_THRESHOLD, MIN_TRAVEL_DISTANCE, SPAWN_RATE
 
 def calculate_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Calculate distance between two GPS coordinates in meters using Haversine formula"""

@@ -3,7 +3,7 @@ import math
 import random
 import time
 from typing import Dict, Any, List, Optional, Tuple
-from .config import ENEMY_STATS
+from game.config import ENEMY_STATS
 
 class ARSpawningSystem:
     def __init__(self):

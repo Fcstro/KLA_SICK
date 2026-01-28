@@ -1,6 +1,6 @@
 import time
 from typing import Dict, Any, Optional
-from .config import CHARACTERS, HEAL_COOLDOWN, HEAL_AMOUNT
+from game.config import CHARACTERS, HEAL_COOLDOWN, HEAL_AMOUNT
 
 class PlayerManager:
     def __init__(self):
