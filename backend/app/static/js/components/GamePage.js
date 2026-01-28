@@ -343,10 +343,13 @@ class GamePage {
                     display: block !important;
                     visibility: visible !important;
                     opacity: 1 !important;
-                    width: 100% !important;
-                    height: 100% !important;
+                    width: 100vw !important;
+                    height: 100vh !important;
+                    max-width: 100vw !important;
+                    max-height: 100vh !important;
+                    min-height: 100vh !important;
                     object-fit: cover !important;
-                    position: absolute !important;
+                    position: fixed !important;
                     top: 0 !important;
                     left: 0 !important;
                     z-index: 1 !important;
@@ -366,6 +369,11 @@ class GamePage {
                 // Wait for video to be ready
                 videoElement.onloadedmetadata = () => {
                     console.log('✅ Camera stream loaded metadata. Video dimensions:', videoElement.videoWidth, 'x', videoElement.videoHeight);
+                    
+                    // Force height again after metadata loads
+                    videoElement.style.height = '100vh !important';
+                    videoElement.style.minHeight = '100vh !important';
+                    console.log('🎥 Height forced after metadata load:', getComputedStyle(videoElement).height);
                     
                     // Try to play immediately
                     videoElement.play().then(() => {
@@ -1682,7 +1690,8 @@ class GamePage {
         if (levelElement) levelElement.textContent = this.gameState.player.level;
         if (xpElement) xpElement.textContent = this.gameState.player.xp;
         
-        const totalKills = Object.values(this.gameState.player.kills).reduce((a, b) => a + b, 0);
+        const totalKills = this.gameState.player.kills ? 
+            Object.values(this.gameState.player.kills).reduce((a, b) => a + b, 0) : 0;
         if (killsElement) killsElement.textContent = totalKills;
     }
 
