@@ -16,6 +16,10 @@ class GamePage {
         this.autoSpawnEnabled = false;
         this.autoSpawnInterval = null;
         
+        // Location error tracking
+        this.locationErrorCount = 0;
+        this.maxLocationErrors = 3;
+        
         // Game State
         this.gameState = {
             playerId: null,
@@ -482,6 +486,15 @@ class GamePage {
         }
     }
 
+    disableLocationTracking() {
+        if (this.locationWatcher) {
+            navigator.geolocation.clearWatch(this.locationWatcher);
+            this.locationWatcher = null;
+        }
+        this.showMessage('📍 Location tracking disabled due to repeated errors. Use debug modal to spawn enemies.', 'warning');
+        console.log('🛑 Location tracking disabled due to repeated errors');
+    }
+    
     toggleAutoSpawn() {
         const button = document.getElementById('autoSpawnBtn');
         
@@ -817,8 +830,35 @@ class GamePage {
                 })
             });
             
+            if (!response.ok) {
+                this.locationErrorCount++;
+                if (response.status === 500) {
+                    console.error('❌ Server error in location update');
+                    this.showMessage('🚫 Server error - location features temporarily disabled', 'error');
+                } else {
+                    console.error(`❌ Location update failed: ${response.status}`);
+                    this.showMessage('🚫 Location tracking error', 'error');
+                }
+                
+                // Disable location tracking after too many errors
+                if (this.locationErrorCount >= this.maxLocationErrors) {
+                    this.disableLocationTracking();
+                }
+                return;
+            }
+            
+            // Reset error count on successful request
+            this.locationErrorCount = 0;
+            
             const data = await response.json();
             console.log('Location update response:', data);
+            
+            // Check if there's an error in the response
+            if (data.error) {
+                console.error('❌ Backend error:', data.error);
+                this.showMessage(`🚫 Location error: ${data.error}`, 'error');
+                return;
+            }
             
             if (data.spawn) {
                 console.log('Enemy spawned from location config!', data);
