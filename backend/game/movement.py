@@ -64,7 +64,7 @@ def check_ar_enemy_spawn(player: Dict[str, Any], distance_traveled: float) -> Op
     
     # Use AR spawning system
     try:
-        from .ar_spawning import ar_spawning_system
+        from game.ar_spawning import ar_spawning_system
         enemy = ar_spawning_system.find_best_spawn_location(
             last_location[0], 
             last_location[1], 

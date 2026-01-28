@@ -231,7 +231,7 @@ class CombatSystem:
     
     def apply_buffs_to_damage(self, player: Dict[str, Any], base_damage: int) -> int:
         """Apply active buffs to damage calculation"""
-        from .player import player_manager
+        from game.player import player_manager
         
         active_buffs = player_manager.get_active_buffs(player["id"])
         modified_damage = base_damage
@@ -243,7 +243,7 @@ class CombatSystem:
     
     def apply_buffs_to_defense(self, player: Dict[str, Any], incoming_damage: int) -> int:
         """Apply active buffs to damage reduction"""
-        from .player import player_manager
+        from game.player import player_manager
         
         active_buffs = player_manager.get_active_buffs(player["id"])
         modified_damage = incoming_damage
