@@ -66,13 +66,13 @@ class GamePage {
                                 </div>
                                 <div class="hp-text" id="playerHpText">100/100</div>
                             </div>
-                            <span class="level">Level: <span id="player-level">1</span></span>
-                            <span class="xp">XP: <span id="player-xp">0</span></span>
-                            <span class="kills">Kills: <span id="player-kills">0</span></span>
+                            <div class="stat-item level">Level: <span id="level">1</span></div>
+                            <div class="stat-item xp">XP: <span id="xp">0</span></div>
+                            <div class="stat-item kills">Kills: <span id="kills">0</span></div>
                         </div>
                     </div>
-                    <button class="btn-back" onclick="window.router.navigate('/')">← Back</button>
                 </div>
+                <button class="btn-back" onclick="window.router.navigate('/')">← Back</button>
 
                 <div class="ar-container">
                     <video id="cam" autoplay playsinline></video>
@@ -498,43 +498,37 @@ class GamePage {
             this.fadeInEnemy();
         }
         
-        // Update enemy info without destroying the 3D container
-        const enemyInfo = enemyContainer.querySelector('.enemy-info') || document.createElement('div');
-        enemyInfo.className = 'enemy-info';
-        enemyInfo.innerHTML = `
-            <h3>${stats.name}</h3>
-            <div class="health-bar-container">
-                <div class="health-bar enemy-health-bar">
-                    <div class="health-fill enemy-health-fill" style="width: 100%"></div>
-                </div>
-                <span class="health-text enemy-health-text">HP: ${stats.hp}/${stats.max_hp}</span>
-            </div>
-            <p>Wild enemy appeared!</p>
-        `;
+        // Update enemy info using existing elements
+        document.getElementById('enemyIcon').textContent = this.getEnemyIcon(enemyType);
+        document.getElementById('enemyName').textContent = stats.name;
+        document.getElementById('enemyStats').textContent = `HP: ${stats.hp}/${stats.max_hp}`;
         
-        // Make sure enemy container has the right structure
-        if (!enemyContainer.querySelector('.enemy-visual')) {
-            enemyContainer.innerHTML = `
-                <div class="enemy ${enemyType}">
-                    <div class="enemy-visual">
-                        <div id="enemy-3d-container" class="enemy-3d-container"></div>
-                        <div class="enemy-icon-fallback" style="display: none;">${this.getEnemyIcon(enemyType)}</div>
-                    </div>
-                </div>
-            `;
-            // Re-setup Three.js container since we replaced innerHTML
-            this.setupThreeJS();
-            // Re-add the enemy model
-            if (this.enemyModel && this.threeScene) {
-                this.threeScene.add(this.enemyModel);
-            }
-        }
+        // Update enemy health bar
+        const healthPercent = (stats.hp / stats.max_hp) * 100;
+        document.getElementById('enemyHealthFill').style.width = healthPercent + '%';
         
-        // Add the enemy info
-        enemyContainer.querySelector('.enemy').appendChild(enemyInfo);
+        // Show enemy container and action buttons
+        enemyContainer.style.display = 'block';
+        actionButtons.classList.add('show');
+        statusMessage.textContent = `⚔️ ${stats.name} appeared!`;
         
-        combatControls.style.display = 'flex';
-        statusMessage.textContent = `⚔️ A ${stats.name} appeared!`;
+        // Update game state
+        this.gameState.enemy = stats;
+        this.gameState.inCombat = true;
+        
+        console.log(`👹 Enemy spawned: ${enemyType} with ${stats.hp} HP`);
+    }
+
+    getEnemyIcon(enemyType) {
+        const icons = {
+            'class1': '👹',
+            'class2': '👺', 
+            'class3': '🐉',
+            'goblin': '👹',
+            'orc': '👺',
+            'dragon': '🐉'
+        };
+        return icons[enemyType] || '👾';
     }
 
     showSpawnEffect() {

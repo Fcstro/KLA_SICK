@@ -83,6 +83,8 @@ body {
     transition: all 0.3s ease;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
     box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+    text-decoration: none;
+    display: inline-block;
 }
 
 .btn-start:hover, .btn-leaderboard:hover {
@@ -236,10 +238,12 @@ body {
     left: 0;
     right: 0;
     background: rgba(0,0,0,0.8);
-    padding: 15px 10px;
+    padding: 15px 20px;
     z-index: 10;
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 10px 20px;
     align-items: center;
 }
 
@@ -248,21 +252,22 @@ body {
     font-weight: bold;
     color: #FFD700;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    grid-column: 1 / -1; /* Span all columns */
+    grid-row: 1;
+    text-align: center;
 }
 
 .player-info {
-    display: flex;
-    align-items: center;
-    gap: 20px;
+    display: contents;
 }
 
 .player-stats {
-    display: flex;
-    gap: 20px;
-    align-items: center;
+    display: contents;
 }
 
 .hp-container {
+    grid-column: 1;
+    grid-row: 2;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -293,6 +298,24 @@ body {
     color: white;
     font-size: 14px;
     font-weight: bold;
+}
+
+.stat-item.xp {
+    grid-column: 1;
+    grid-row: 3;
+    text-align: left;
+}
+
+.stat-item.level {
+    grid-column: 2;
+    grid-row: 2;
+    text-align: right;
+}
+
+.stat-item.kills {
+    grid-column: 2;
+    grid-row: 3;
+    text-align: right;
 }
 
 .ar-container {
