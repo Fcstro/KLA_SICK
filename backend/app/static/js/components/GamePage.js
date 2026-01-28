@@ -104,10 +104,10 @@ class GamePage {
                         <button class="action-button" id="healBtn" onclick="gamePage.heal()">Heal</button>
                         <button class="action-button" id="escapeBtn" onclick="gamePage.escape()">Escape</button>
                     </div>
-                    
-                    <!-- Debug Modal Toggle -->
-                    <button class="debug-toggle" onclick="gamePage.toggleDebugModal()">⚙️</button>
                 </div>
+
+                <!-- Debug Toggle (Fixed Position) -->
+                <button class="debug-toggle" onclick="gamePage.toggleDebugModal()">⚙️</button>
 
                 <!-- Debug Modal -->
                 <div id="debugModal" class="debug-modal" style="display: none;">
@@ -289,6 +289,12 @@ class GamePage {
         try {
             console.log('🎥 Setting up AR camera...');
             
+            // Check if running on HTTPS or localhost
+            const isSecure = window.isSecureContext || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            if (!isSecure) {
+                throw new Error("Camera access requires HTTPS or localhost. Please run the app on a secure server.");
+            }
+            
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 throw new Error("Camera API not available in this browser");
             }
@@ -297,28 +303,78 @@ class GamePage {
             this.cameraStream = await navigator.mediaDevices.getUserMedia({
                 video: { 
                     facingMode: 'environment',
-                    width: { ideal: 1920 },
-                    height: { ideal: 1080 }
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
                 }
             });
             
             const videoElement = document.getElementById("cam");
             if (videoElement) {
+                console.log('✅ Video element found:', videoElement);
+                console.log('🎥 Video element styles:', {
+                    display: getComputedStyle(videoElement).display,
+                    width: getComputedStyle(videoElement).width,
+                    height: getComputedStyle(videoElement).height,
+                    zIndex: getComputedStyle(videoElement).zIndex,
+                    opacity: getComputedStyle(videoElement).opacity
+                });
+                
                 videoElement.srcObject = this.cameraStream;
+                console.log('✅ Camera stream attached to video element');
                 
                 // Wait for video to be ready
                 videoElement.onloadedmetadata = () => {
-                    videoElement.play();
+                    console.log('✅ Camera stream loaded metadata. Video dimensions:', videoElement.videoWidth, 'x', videoElement.videoHeight);
+                    
+                    // Try to play immediately
+                    videoElement.play().then(() => {
+                        console.log('✅ Video play successful');
+                    }).catch(err => {
+                        console.error('❌ Video play failed:', err);
+                        console.log('🔄 Attempting to play with user interaction...');
+                        
+                        // Add click listener to start video on user interaction
+                        const startVideo = () => {
+                            videoElement.play().then(() => {
+                                console.log('✅ Video play successful after user interaction');
+                                this.showMessage('🎥 AR camera activated!', 'success');
+                                document.removeEventListener('click', startVideo);
+                                document.removeEventListener('touchstart', startVideo);
+                            }).catch(err => {
+                                console.error('❌ Video still failed after user interaction:', err);
+                            });
+                        };
+                        
+                        document.addEventListener('click', startVideo);
+                        document.addEventListener('touchstart', startVideo);
+                        this.showMessage('📵 Tap screen to activate camera', 'warning');
+                    });
+                    
                     console.log('🎥 AR camera started successfully!');
                 };
                 
-                // Ensure video is visible
-                videoElement.style.display = 'block';
-                videoElement.style.width = '100%';
-                videoElement.style.height = '100%';
-                videoElement.style.objectFit = 'cover';
+                // Ensure video is visible - force override any conflicting styles
+                videoElement.style.display = 'block !important';
+                videoElement.style.visibility = 'visible !important';
+                videoElement.style.opacity = '1 !important';
+                videoElement.style.width = '100% !important';
+                videoElement.style.height = '100% !important';
+                videoElement.style.objectFit = 'cover !important';
+                videoElement.style.position = 'absolute !important';
+                videoElement.style.top = '0 !important';
+                videoElement.style.left = '0 !important';
+                videoElement.style.zIndex = '1 !important';
                 
-                this.showMessage('🎥 AR camera activated!', 'success');
+                console.log('🎥 Forced video styles applied');
+                
+                // Add a test background to verify video element visibility
+                setTimeout(() => {
+                    if (videoElement.videoWidth === 0) {
+                        console.warn('⚠️ Video dimensions are 0, adding test background');
+                        videoElement.style.background = 'red';
+                    }
+                }, 2000);
+                
             } else {
                 throw new Error("Camera video element not found");
             }
@@ -333,6 +389,8 @@ class GamePage {
                 this.showMessage('📵 No camera found. Please ensure your device has a camera.', 'error');
             } else if (err.name === 'NotReadableError') {
                 this.showMessage('📵 Camera is already in use by another application.', 'error');
+            } else if (err.message.includes('HTTPS')) {
+                this.showMessage('🔒 Camera requires HTTPS. Please run the app on a secure server (https://).', 'error');
             } else {
                 this.showMessage(`📵 Camera error: ${err.message}`, 'error');
             }

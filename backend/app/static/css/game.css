@@ -757,9 +757,9 @@ body {
 
 /* Debug Modal Styles */
 .debug-toggle {
-    position: absolute;
-    top: -50px;
-    right: 10px;
+    position: fixed;
+    top: 20px;
+    right: 20px;
     background: rgba(255,255,255,0.1);
     border: 1px solid rgba(255,255,255,0.2);
     border-radius: 50%;
@@ -775,6 +775,7 @@ body {
     user-select: none;
     -webkit-user-select: none;
     -webkit-tap-highlight-color: transparent;
+    z-index: 1000;
 }
 
 .debug-toggle:hover {
