@@ -1136,7 +1136,6 @@ class GamePage {
         this.currentEnemy = enemyType;
         const enemyContainer = document.getElementById('enemy-container');
         const actionButtons = document.getElementById('actionButtons');
-        const statusMessage = document.getElementById('status-message');
         
         // Clear previous enemy
         this.clearEnemy3D();
@@ -1155,12 +1154,9 @@ class GamePage {
         // Load 3D enemy model first
         this.enemyModel = await this.load3DEnemyModel(enemyType);
         if (this.enemyModel && this.threeScene) {
-            // Position enemy properly to prevent cutoff
-            this.enemyModel.position.y = -1; // Much higher position
-            this.enemyModel.position.set(0, -1, -5); // Move back in Z space
-            
-            // Scale enemy to normal size (100%)
-            this.enemyModel.scale.set(1.0, 2.0, 3.0); // Full size
+            // Center the enemy model in front of the camera
+            // Keep it directly in the middle of the Three.js canvas
+            this.enemyModel.position.set(0, 0, -8);
             
             // Add AR integration effects
             this.addAREffects(enemyType);
@@ -1182,7 +1178,7 @@ class GamePage {
         // Show enemy container and action buttons
         enemyContainer.style.display = 'block';
         actionButtons.classList.add('show');
-        statusMessage.textContent = `⚔️ ${stats.name} appeared!`;
+        this.showMessage(`⚔️ ${stats.name} appeared!`, 'success');
         
         // Update game state
         this.gameState.enemy = stats;
@@ -1460,11 +1456,20 @@ class GamePage {
     clearEnemy() {
         this.currentEnemy = null;
         this.clearEnemy3D();
-        document.getElementById('enemy-container').innerHTML = `
-            <div id="enemy-3d-container" class="enemy-3d-container"></div>
-        `;
-        document.getElementById('combat-controls').style.display = 'none';
-        document.getElementById('status-message').textContent = '📍 Move around to find enemies...';
+
+        const enemyContainer = document.getElementById('enemy-container');
+        const actionButtons = document.getElementById('actionButtons');
+
+        if (enemyContainer) {
+            enemyContainer.style.display = 'none';
+        }
+        if (actionButtons) {
+            actionButtons.classList.remove('show');
+        }
+
+        this.gameState.enemy = null;
+        this.gameState.inCombat = false;
+        this.showMessage('📍 Move around to find enemies...', 'info');
     }
 
     clearEnemy3D() {
@@ -1489,22 +1494,22 @@ class GamePage {
     }
 
     updatePlayerStats(data) {
-        document.getElementById('player-level').textContent = data.level || 1;
-        document.getElementById('player-xp').textContent = data.xp || 0;
+        const levelEl = document.getElementById('level');
+        const xpEl = document.getElementById('xp');
+
+        if (levelEl) levelEl.textContent = data.level ?? 1;
+        if (xpEl) xpEl.textContent = data.xp ?? 0;
         
         if (data.current_hp !== undefined && data.max_hp !== undefined) {
-            const healthPercent = (data.current_hp / data.max_hp) * 100;
-            document.querySelector('.player-health-fill').style.width = healthPercent + '%';
-            document.querySelector('.player-health-text').textContent = `HP: ${data.current_hp}/${data.max_hp}`;
-            
-            // Change color based on HP level
-            const healthFill = document.querySelector('.player-health-fill');
-            if (healthPercent <= 25) {
-                healthFill.style.background = 'linear-gradient(90deg, #f44336, #d32f2f)';
-            } else if (healthPercent <= 50) {
-                healthFill.style.background = 'linear-gradient(90deg, #ff9800, #f57c00)';
-            } else {
-                healthFill.style.background = 'linear-gradient(90deg, #4caf50, #388e3c)';
+            const hpPercent = (data.current_hp / data.max_hp) * 100;
+            const hpFill = document.getElementById('playerHpFill');
+            const hpText = document.getElementById('playerHpText');
+
+            if (hpFill) {
+                hpFill.style.width = hpPercent + '%';
+            }
+            if (hpText) {
+                hpText.textContent = `HP: ${data.current_hp}/${data.max_hp}`;
             }
         }
         
@@ -2109,13 +2114,17 @@ class GamePage {
         const enemyContainer = document.getElementById('enemy-container');
         const actionButtons = document.getElementById('actionButtons');
         
-        enemyContainer.style.display = 'block';
-        actionButtons.classList.add('show');
-        
-        document.getElementById('enemyIcon').textContent = 
-            enemy.type === 'class1' ? '👹' : 
-            enemy.type === 'class2' ? '👺' : '🐉';
-        document.getElementById('enemyName').textContent = enemy.name;
+        if (enemyContainer) {
+            enemyContainer.style.display = 'block';
+        }
+        if (actionButtons) {
+            actionButtons.classList.add('show');
+        }
+
+        const nameEl = document.getElementById('enemyName');
+        if (nameEl) {
+            nameEl.textContent = enemy.name;
+        }
         
         this.updateEnemyHealth();
     }
