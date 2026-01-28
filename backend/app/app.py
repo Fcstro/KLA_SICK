@@ -255,6 +255,107 @@ def use_skill():
     except Exception as e:
         return jsonify({"error": "Internal server error"}), 500
 
+@app.route("/combat-turn", methods=["POST"])
+@limiter.limit("20 per minute")
+@validate_json_data(["player_id", "action"])
+def combat_turn():
+    try:
+        data = request.get_json()
+        player_id = data["player_id"]
+        action = data["action"]
+        
+        player = player_manager.get_player(player_id)
+        if not player:
+            return jsonify({"error": "Player not found"}), 400
+        
+        # Check if player is in combat
+        combat = combat_system.get_combat(player_id)
+        if not combat:
+            return jsonify({"error": "No active combat"}), 400
+        
+        # Process combat turn based on action
+        if action == "attack":
+            # Use character's basic attack
+            from game.config import SKILLS
+            character_class = player["character_class"]
+            attack_skill = None
+            
+            for skill in SKILLS.get(character_class, []):
+                if skill["type"] == "damage" and "damage_multiplier" in skill:
+                    attack_skill = skill["name"]
+                    break
+            
+            if not attack_skill:
+                return jsonify({"error": "No attack skill found"}), 400
+            
+            result = combat_system.use_skill(player, attack_skill, combat["enemy"])
+            
+        elif action == "skill":
+            skill_name = data.get("skill_name")
+            if not skill_name:
+                return jsonify({"error": "Skill name required for skill action"}), 400
+            
+            result = combat_system.use_skill(player, skill_name, combat["enemy"])
+            
+        else:
+            return jsonify({"error": "Invalid action"}), 400
+        
+        # Handle escape
+        if result.get("escaped"):
+            combat_system.end_combat(player_id)
+            return jsonify({
+                "escaped": True,
+                "combat_messages": result.get("combat_messages", [])
+            })
+        
+        # Handle combat results
+        if result.get("enemy_defeated"):
+            from game.config import ENEMY_STATS
+            enemy_type = combat["enemy"]["type"]
+            player["kills"][enemy_type] += 1
+            
+            xp_result = player_manager.add_xp(player["id"], ENEMY_STATS[enemy_type]["xp_reward"])
+            result.update({
+                "enemy_defeated": True,
+                "xp_gained": xp_result["xp_gained"],
+                "new_level": xp_result["level"],
+                "leveled_up": xp_result["leveled_up"],
+                "pending_level_up": xp_result["pending_level_up"],
+                "skill_points": xp_result["skill_points"]
+            })
+            
+            if xp_result["leveled_up"]:
+                result["combat_messages"].append(f"⭐ LEVEL UP! You are now level {xp_result['level']}!")
+            
+            combat_system.end_combat(player_id)
+        else:
+            # Enemy counter-attacks if not defeated
+            enemy_attack_result = combat_system.enemy_attack(combat["enemy"])
+            if enemy_attack_result["hit"]:
+                # Apply damage reduction buffs
+                final_damage = combat_system.apply_buffs_to_defense(player, enemy_attack_result["damage"])
+                player["current_hp"] -= final_damage
+                player["current_hp"] = max(0, player["current_hp"])
+                
+                result["combat_messages"].append(f"👹 Enemy hits for {final_damage} damage!")
+            else:
+                result["combat_messages"].append(f"🛡️ Enemy attack dodged!")
+            
+            result.update({
+                "enemy_attack": enemy_attack_result,
+                "player_hp": player["current_hp"],
+                "player_defeated": player["current_hp"] <= 0
+            })
+            
+            if player["current_hp"] <= 0:
+                result["combat_messages"].append(f"💀 You have been defeated!")
+                combat_system.end_combat(player_id)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({"error": "Internal server error"}), 500
+
 @app.route("/heal", methods=["POST"])
 @limiter.limit("10 per minute")
 def heal():

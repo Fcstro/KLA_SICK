@@ -58,18 +58,16 @@ class GamePage {
             <div class="game-container">
                 <div class="game-header">
                     <div class="game-title">Klasick</div>
-                    <div class="player-info">
-                        <div class="player-stats">
-                            <div class="hp-container">
-                                <div class="hp-bar">
-                                    <div class="hp-fill" id="playerHpFill" style="width: 100%"></div>
-                                </div>
+                    <div class="player-stats">
+                        <div class="hp-container">
+                            <div class="hp-bar">
+                                <div class="hp-fill" id="playerHpFill" style="width: 100%"></div>
                                 <div class="hp-text" id="playerHpText">100/100</div>
                             </div>
-                            <div class="stat-item level">Level: <span id="level">1</span></div>
-                            <div class="stat-item xp">XP: <span id="xp">0</span></div>
-                            <div class="stat-item kills">Kills: <span id="kills">0</span></div>
                         </div>
+                        <div class="stat-item level">Level: <span id="level">1</span></div>
+                        <div class="stat-item xp">XP: <span id="xp">0</span></div>
+                        <div class="stat-item kills">Kills: <span id="kills">0</span></div>
                     </div>
                 </div>
                 <button class="btn-back" onclick="window.router.navigate('/')">← Back</button>
@@ -79,12 +77,11 @@ class GamePage {
                     <div class="game-overlay">
                         <div id="enemy-container" class="enemy-container" style="display: none;">
                             <div class="enemy-info">
-                                <div class="enemy-icon" id="enemyIcon">👹</div>
                                 <div class="enemy-name" id="enemyName">Goblin</div>
                                 <div class="enemy-health-bar">
                                     <div class="enemy-health-fill" id="enemyHealthFill" style="width: 100%"></div>
+                                    <div id="enemyStats">HP: 30/30</div>
                                 </div>
-                                <div id="enemyStats">HP: 30/30</div>
                             </div>
                             <div id="enemy-3d-container" class="enemy-3d-container"></div>
                         </div>
@@ -499,7 +496,6 @@ class GamePage {
         }
         
         // Update enemy info using existing elements
-        document.getElementById('enemyIcon').textContent = this.getEnemyIcon(enemyType);
         document.getElementById('enemyName').textContent = stats.name;
         document.getElementById('enemyStats').textContent = `HP: ${stats.hp}/${stats.max_hp}`;
         
@@ -515,6 +511,9 @@ class GamePage {
         // Update game state
         this.gameState.enemy = stats;
         this.gameState.inCombat = true;
+        
+        // Start idle animation
+        this.playEnemyAnimation('idle');
         
         console.log(`👹 Enemy spawned: ${enemyType} with ${stats.hp} HP`);
     }
@@ -909,7 +908,6 @@ class GamePage {
         await this.handleLocationUpdate(mockPosition);
     }
 
-    // Skill System Methods
     async playerAttack() {
         if (!this.gameState.inCombat) {
             this.showMessage('No enemy to attack!', 'error');
@@ -921,18 +919,18 @@ class GamePage {
             return;
         }
         
-        const abilities = this.characterAbilities[this.gameState.characterClass];
-        const skillName = abilities.attack;
+        // Disable buttons during combat turn
+        this.disableCombatButtons(true);
         
         try {
-            const response = await fetch('/use-skill', {
+            const response = await fetch('/combat-turn', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ 
-                    skill_name: skillName,
-                    player_id: this.gameState.playerId 
+                    player_id: this.gameState.playerId,
+                    action: 'attack'
                 })
             });
             
@@ -940,6 +938,7 @@ class GamePage {
             
             if (data.error) {
                 this.showMessage(data.error, 'error');
+                this.disableCombatButtons(false);
                 return;
             }
             
@@ -948,38 +947,13 @@ class GamePage {
                 data.combat_messages.forEach(msg => this.showMessage(msg, 'success'));
             }
             
-            // Handle enemy defeat
-            if (data.enemy_defeated) {
-                this.gameState.enemy = null;
-                this.gameState.inCombat = false;
-                document.getElementById('enemy-container').style.display = 'none';
-                document.getElementById('actionButtons').classList.remove('show');
-                if (data.xp_gained) {
-                    this.showMessage(`Enemy defeated! +${data.xp_gained} XP`, 'success');
-                }
-                this.updateStats();
-                return;
-            }
-            
-            // Update enemy health if damaged but not defeated
-            if (data.damage !== undefined) {
-                this.updateEnemyHealth();
-            }
-            
-            // Update player stats if counter-attacked
-            if (data.player_hp !== undefined) {
-                this.gameState.player.current_hp = data.player_hp;
-                this.updateStats();
-                
-                if (data.player_defeated) {
-                    this.showMessage('You have been defeated!', 'error');
-                    this.gameState.inCombat = false;
-                }
-            }
+            // Handle combat results
+            this.handleCombatTurnResult(data);
             
         } catch (error) {
             console.error('Attack error:', error);
             this.showMessage('Attack failed', 'error');
+            this.disableCombatButtons(false);
         }
     }
 
@@ -997,15 +971,19 @@ class GamePage {
         const abilities = this.characterAbilities[this.gameState.characterClass];
         const skillName = abilities.skill;
         
+        // Disable buttons during combat turn
+        this.disableCombatButtons(true);
+        
         try {
-            const response = await fetch('/use-skill', {
+            const response = await fetch('/combat-turn', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ 
-                    skill_name: skillName,
-                    player_id: this.gameState.playerId 
+                    player_id: this.gameState.playerId,
+                    action: 'skill',
+                    skill_name: skillName
                 })
             });
             
@@ -1013,6 +991,7 @@ class GamePage {
             
             if (data.error) {
                 this.showMessage(data.error, 'error');
+                this.disableCombatButtons(false);
                 return;
             }
             
@@ -1021,47 +1000,13 @@ class GamePage {
                 data.combat_messages.forEach(msg => this.showMessage(msg, 'success'));
             }
             
-            // Handle escape
-            if (data.escaped) {
-                this.gameState.enemy = null;
-                this.gameState.inCombat = false;
-                document.getElementById('enemy-container').style.display = 'none';
-                document.getElementById('actionButtons').classList.remove('show');
-                return;
-            }
-            
-            // Handle enemy defeat
-            if (data.enemy_defeated) {
-                this.gameState.enemy = null;
-                this.gameState.inCombat = false;
-                document.getElementById('enemy-container').style.display = 'none';
-                document.getElementById('actionButtons').classList.remove('show');
-                if (data.xp_gained) {
-                    this.showMessage(`Enemy defeated! +${data.xp_gained} XP`, 'success');
-                }
-                this.updateStats();
-                return;
-            }
-            
-            // Update enemy health if damaged but not defeated
-            if (data.damage !== undefined) {
-                this.updateEnemyHealth();
-            }
-            
-            // Update player stats if counter-attacked
-            if (data.player_hp !== undefined) {
-                this.gameState.player.current_hp = data.player_hp;
-                this.updateStats();
-                
-                if (data.player_defeated) {
-                    this.showMessage('You have been defeated!', 'error');
-                    this.gameState.inCombat = false;
-                }
-            }
+            // Handle combat results
+            this.handleCombatTurnResult(data);
             
         } catch (error) {
             console.error('Skill error:', error);
             this.showMessage('Skill failed', 'error');
+            this.disableCombatButtons(false);
         }
     }
 
@@ -1074,15 +1019,19 @@ class GamePage {
         const abilities = this.characterAbilities[this.gameState.characterClass];
         const skillName = abilities.heal;
         
+        // Disable buttons during combat turn
+        this.disableCombatButtons(true);
+        
         try {
-            const response = await fetch('/use-skill', {
+            const response = await fetch('/combat-turn', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ 
-                    skill_name: skillName,
-                    player_id: this.gameState.playerId 
+                    player_id: this.gameState.playerId,
+                    action: 'skill',
+                    skill_name: skillName
                 })
             });
             
@@ -1090,6 +1039,7 @@ class GamePage {
             
             if (data.error) {
                 this.showMessage(data.error, 'error');
+                this.disableCombatButtons(false);
                 return;
             }
             
@@ -1098,17 +1048,291 @@ class GamePage {
                 data.combat_messages.forEach(msg => this.showMessage(msg, 'success'));
             }
             
-            // Update player stats if healed
-            if (data.healed !== undefined) {
-                this.gameState.player.current_hp = data.current_hp;
-                this.updateStats();
-                this.showMessage(`Healed ${data.healed} HP!`, 'success');
-            }
+            // Handle combat results
+            this.handleCombatTurnResult(data);
             
         } catch (error) {
             console.error('Heal error:', error);
             this.showMessage('Heal failed', 'error');
+            this.disableCombatButtons(false);
         }
+    }
+
+    handleCombatTurnResult(data) {
+        // Update enemy health if damaged
+        if (data.player_attack && data.player_attack.damage !== undefined) {
+            this.updateEnemyHealth();
+            // Play enemy hit animation
+            this.playEnemyAnimation('hit');
+        }
+        
+        // Update player health if damaged
+        if (data.enemy_attack && data.enemy_attack.damage !== undefined) {
+            this.gameState.player.current_hp = data.player_hp;
+            this.updateStats();
+            
+            // Play enemy attack animation
+            this.playEnemyAnimation('attack');
+            
+            // Screen shake effect for enemy attack
+            this.screenShake();
+        }
+        
+        // Handle enemy defeat
+        if (data.enemy_defeated) {
+            // Play enemy defeat animation
+            this.playEnemyAnimation('defeat');
+            
+            setTimeout(() => {
+                this.gameState.enemy = null;
+                this.gameState.inCombat = false;
+                document.getElementById('enemy-container').style.display = 'none';
+                document.getElementById('actionButtons').classList.remove('show');
+                
+                if (data.xp_gained) {
+                    this.showMessage(`Enemy defeated! +${data.xp_gained} XP`, 'success');
+                }
+                
+                if (data.leveled_up) {
+                    this.showMessage(`LEVEL UP! You are now level ${data.new_level}!`, 'success');
+                }
+                
+                this.updateStats();
+                this.disableCombatButtons(false);
+            }, 1000); // Wait for defeat animation
+            return;
+        }
+        
+        // Handle player defeat
+        if (data.player_defeated) {
+            this.showMessage('You have been defeated!', 'error');
+            this.gameState.inCombat = false;
+            this.disableCombatButtons(false);
+            
+            // Play player defeat effect
+            this.playDefeatEffect();
+            
+            setTimeout(() => {
+                window.router.navigate('/');
+            }, 3000);
+            return;
+        }
+        
+        // Re-enable buttons for next turn
+        setTimeout(() => {
+            this.disableCombatButtons(false);
+        }, 1000);
+    }
+
+    playEnemyAnimation(animationType) {
+        if (!this.enemyModel || !this.threeScene) return;
+        
+        switch(animationType) {
+            case 'attack':
+                this.enemyAttackAnimation();
+                break;
+            case 'hit':
+                this.enemyHitAnimation();
+                break;
+            case 'defeat':
+                this.enemyDefeatAnimation();
+                break;
+            case 'idle':
+                this.enemyIdleAnimation();
+                break;
+        }
+    }
+
+    enemyAttackAnimation() {
+        // Enemy attacks - lunge forward and back
+        const originalPosition = this.enemyModel.position.clone();
+        const originalRotation = this.enemyModel.rotation.clone();
+        
+        // Lunge forward
+        const attackDuration = 500;
+        const startTime = Date.now();
+        
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / attackDuration, 1);
+            
+            if (progress < 0.5) {
+                // Lunge forward
+                const lungeProgress = progress * 2;
+                this.enemyModel.position.z = originalPosition.z - (lungeProgress * 3);
+                this.enemyModel.position.y = originalPosition.y + Math.sin(lungeProgress * Math.PI) * 0.5;
+                this.enemyModel.rotation.y = originalRotation.y + Math.sin(lungeProgress * Math.PI) * 0.2;
+            } else {
+                // Return to original position
+                const returnProgress = (progress - 0.5) * 2;
+                this.enemyModel.position.lerp(originalPosition, returnProgress);
+                this.enemyModel.rotation.y = originalRotation.y + Math.sin(returnProgress * Math.PI) * 0.1 * (1 - returnProgress);
+            }
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                this.enemyModel.position.copy(originalPosition);
+                this.enemyModel.rotation.copy(originalRotation);
+            }
+        };
+        
+        animate();
+    }
+
+    enemyHitAnimation() {
+        // Enemy gets hit - shake and flash red
+        const originalPosition = this.enemyModel.position.clone();
+        const shakeIntensity = 0.3;
+        const shakeDuration = 300;
+        const startTime = Date.now();
+        
+        // Flash red effect
+        if (this.enemyModel.children.length > 0) {
+            this.enemyModel.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = child.material.clone();
+                    child.material.color.setHex(0xff0000);
+                }
+            });
+        }
+        
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / shakeDuration, 1);
+            
+            if (progress < 1) {
+                // Shake effect
+                const shakeX = (Math.random() - 0.5) * shakeIntensity * (1 - progress);
+                const shakeY = (Math.random() - 0.5) * shakeIntensity * (1 - progress);
+                this.enemyModel.position.x = originalPosition.x + shakeX;
+                this.enemyModel.position.y = originalPosition.y + shakeY;
+                
+                requestAnimationFrame(animate);
+            } else {
+                this.enemyModel.position.copy(originalPosition);
+                
+                // Restore original color
+                if (this.enemyModel.children.length > 0) {
+                    this.enemyModel.traverse((child) => {
+                        if (child.isMesh && child.material.color.getHex() === 0xff0000) {
+                            child.material.color.setHex(0xffffff);
+                        }
+                    });
+                }
+            }
+        };
+        
+        animate();
+    }
+
+    enemyDefeatAnimation() {
+        // Enemy defeated - fall down and fade out
+        const fallDuration = 1000;
+        const startTime = Date.now();
+        const originalPosition = this.enemyModel.position.clone();
+        const originalRotation = this.enemyModel.rotation.clone();
+        
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / fallDuration, 1);
+            
+            // Fall down
+            this.enemyModel.position.y = originalPosition.y - (progress * progress * 5);
+            
+            // Spin while falling
+            this.enemyModel.rotation.x = originalRotation.x + (progress * Math.PI * 2);
+            this.enemyModel.rotation.z = originalRotation.z + (progress * Math.PI);
+            
+            // Fade out
+            if (this.enemyModel.children.length > 0) {
+                this.enemyModel.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material.opacity = 1 - progress;
+                        child.material.transparent = true;
+                    }
+                });
+            }
+            
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                // Remove enemy from scene
+                if (this.threeScene && this.enemyModel) {
+                    this.threeScene.remove(this.enemyModel);
+                }
+            }
+        };
+        
+        animate();
+    }
+
+    enemyIdleAnimation() {
+        // Enemy idle breathing animation
+        if (!this.idleAnimationRunning) {
+            this.idleAnimationRunning = true;
+            const breathe = () => {
+                if (!this.enemyModel || !this.gameState.inCombat) {
+                    this.idleAnimationRunning = false;
+                    return;
+                }
+                
+                const time = Date.now() * 0.001;
+                this.enemyModel.position.y = Math.sin(time * 2) * 0.1;
+                this.enemyModel.rotation.y = Math.sin(time * 0.5) * 0.05;
+                
+                requestAnimationFrame(breathe);
+            };
+            breathe();
+        }
+    }
+
+    screenShake() {
+        // Screen shake effect when enemy attacks
+        const gameContainer = document.querySelector('.game-container');
+        if (!gameContainer) return;
+        
+        const originalTransform = gameContainer.style.transform || '';
+        const shakeIntensity = 5;
+        const shakeDuration = 200;
+        const startTime = Date.now();
+        
+        const shake = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / shakeDuration, 1);
+            
+            if (progress < 1) {
+                const shakeX = (Math.random() - 0.5) * shakeIntensity * (1 - progress);
+                const shakeY = (Math.random() - 0.5) * shakeIntensity * (1 - progress);
+                gameContainer.style.transform = `translate(${shakeX}px, ${shakeY}px)`;
+                
+                requestAnimationFrame(shake);
+            } else {
+                gameContainer.style.transform = originalTransform;
+            }
+        };
+        
+        shake();
+    }
+
+    playDefeatEffect() {
+        // Player defeat effect - red flash and fade
+        const gameContainer = document.querySelector('.game-container');
+        if (!gameContainer) return;
+        
+        gameContainer.style.transition = 'filter 0.5s ease';
+        gameContainer.style.filter = 'brightness(2) saturate(0) hue-rotate(-50deg)';
+        
+        setTimeout(() => {
+            gameContainer.style.filter = 'brightness(0.3) saturate(0)';
+        }, 500);
+    }
+
+    disableCombatButtons(disabled) {
+        const buttons = document.querySelectorAll('.action-button');
+        buttons.forEach(button => {
+            button.disabled = disabled;
+        });
     }
 
     async escape() {

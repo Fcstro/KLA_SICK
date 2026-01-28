@@ -16,7 +16,7 @@ class CharacterSelection {
         app.innerHTML = `
             <div class="character-selection">
                 <div class="header">
-                    <h1>🎮 WebAR RPG</h1>
+                    <h1>KLA SICK</h1>
                     <h2>Choose Your Hero</h2>
                 </div>
                 
