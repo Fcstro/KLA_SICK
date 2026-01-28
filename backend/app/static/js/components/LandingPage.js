@@ -14,10 +14,7 @@ class LandingPage {
                 </div>
                 
                 <div class="game-description">
-                    <p>🎮 WebAR RPG Adventure</p>
-                    <p>🗺️ Explore your real world</p>
-                    <p>⚔️ Battle epic enemies</p>
-                    <p>🏆 Level up your hero</p>
+                    <p>Play as your Favorite Pinoy Super Heros</p>
                 </div>
                 
                 <div class="main-actions">
