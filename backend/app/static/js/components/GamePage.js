@@ -1027,11 +1027,11 @@ class GamePage {
                     // Set different sizes for each enemy type - make them much bigger
                     let size = 4; // default size increased
                     if (enemyType === 'class1') { // Goblin - small
-                        size = 3;
+                        size = 8;
                     } else if (enemyType === 'class2') { // Orc - big - much larger
-                        size = 6;
+                        size = 18;
                     } else if (enemyType === 'class3') { // Dragon - large
-                        size = 5;
+                        size = 15;
                     }
                     
                     // Create a plane geometry with the texture
