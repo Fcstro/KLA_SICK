@@ -1775,6 +1775,10 @@ class GamePage {
     handleCombatTurnResult(data) {
         // Update enemy health if damaged
         if (data.player_attack && data.player_attack.damage !== undefined) {
+            // Update enemy state with new HP
+            if (this.gameState.enemy && data.enemy_stats) {
+                this.gameState.enemy.hp = data.enemy_stats.hp;
+            }
             this.updateEnemyHealth();
             // Play enemy hit animation
             this.playEnemyAnimation('hit');
@@ -1822,6 +1826,8 @@ class GamePage {
             this.showMessage('You have been defeated!', 'error');
             this.gameState.inCombat = false;
             this.disableCombatButtons(false);
+            document.getElementById('enemy-container').style.display = 'none';
+            document.getElementById('actionButtons').classList.remove('show');
             
             // Play player defeat effect
             this.playDefeatEffect();
@@ -1832,10 +1838,10 @@ class GamePage {
             return;
         }
         
-        // Re-enable buttons for next turn
-        setTimeout(() => {
+        // Re-enable combat buttons if combat is still active
+        if (this.gameState.inCombat && !data.enemy_defeated && !data.player_defeated) {
             this.disableCombatButtons(false);
-        }, 1000);
+        }
     }
 
     playEnemyAnimation(animationType) {
