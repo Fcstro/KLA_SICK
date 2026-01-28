@@ -448,16 +448,29 @@ class GamePage {
                 pos => this.handleLocationUpdate(pos),
                 err => {
                     console.log("Location access denied:", err);
-                    // Don't start auto-spawning by default - user needs to enable location
+                    // Don't make API calls if location fails
+                    if (err.code === 3) { // Timeout expired
+                        console.log("Location timeout - disabling location tracking");
+                        this.showMessage('📍 Location timeout. Location features disabled.', 'warning');
+                    } else if (err.code === 1) { // Permission denied
+                        console.log("Location permission denied");
+                        this.showMessage('📍 Location permission denied. Use debug modal to spawn enemies.', 'warning');
+                    }
+                    // Clear the watcher to prevent repeated failed calls
+                    if (this.locationWatcher) {
+                        navigator.geolocation.clearWatch(this.locationWatcher);
+                        this.locationWatcher = null;
+                    }
                 },
                 { 
                     enableHighAccuracy: true,
                     maximumAge: 0,
-                    timeout: 5000
+                    timeout: 10000  // Increased timeout to 10 seconds
                 }
             );
         } else {
             console.log("Geolocation not available");
+            this.showMessage('📍 Geolocation not supported on this device.', 'warning');
         }
     }
 
@@ -733,6 +746,16 @@ class GamePage {
 
     async handleLocationUpdate(position) {
         try {
+            // Validate position data before making API call
+            if (!position || !position.coords || 
+                !position.coords.latitude || !position.coords.longitude ||
+                position.coords.latitude === 0 || position.coords.longitude === 0) {
+                console.warn('Invalid position data, skipping location update');
+                return;
+            }
+            
+            console.log('📍 Updating location:', position.coords.latitude, position.coords.longitude);
+            
             const response = await fetch('/update-location', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
