@@ -604,8 +604,19 @@ class GamePage {
             
             // Only spawn if not in combat
             if (!this.gameState.inCombat) {
-                const enemyTypes = ['class1', 'class2', 'class3'];
-                const randomEnemy = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+                // Use SPAWN_CONFIG weights for proper enemy selection
+                const enemyWeights = {
+                    'class1': 0.5,  // 50% chance for Goblin
+                    'class2': 0.3,  // 30% chance for Orc  
+                    'class3': 0.2   // 20% chance for Dragon
+                };
+                
+                // Select enemy based on weights
+                const enemyTypes = Object.keys(enemyWeights);
+                const weights = Object.values(enemyWeights);
+                const randomIndex = this.weightedRandom(enemyTypes, weights);
+                const randomEnemy = enemyTypes[randomIndex];
+                
                 this.spawnTestEnemy(randomEnemy);
                 
                 // Get enemy name for message
@@ -615,7 +626,7 @@ class GamePage {
                     'class3': 'Dragon'
                 };
                 const modeName = this.autoSpawnMode === 'fast' ? 'Fast' : 'Time-based';
-                console.log(`👹 ${modeName} auto-spawned: ${enemyNames[randomEnemy]}`);
+                console.log(`👹 ${modeName} auto-spawned: ${enemyNames[randomEnemy]} (weight-based selection)`);
             }
             
             // Schedule next spawn
@@ -627,6 +638,25 @@ class GamePage {
         
         // Start first spawn immediately
         spawnEnemy();
+    }
+    
+    weightedRandom(items, weights) {
+        // Calculate total weight
+        const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+        
+        // Generate random number between 0 and totalWeight
+        let random = Math.random() * totalWeight;
+        
+        // Find the selected item based on weight
+        for (let i = 0; i < items.length; i++) {
+            random -= weights[i];
+            if (random <= 0) {
+                return i;
+            }
+        }
+        
+        // Fallback to last item
+        return items.length - 1;
     }
     
     toggleAutoSpawn() {
@@ -670,8 +700,19 @@ class GamePage {
             
             // Only spawn if not in combat
             if (!this.gameState.inCombat) {
-                const enemyTypes = ['class1', 'class2', 'class3'];
-                const randomEnemy = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+                // Use SPAWN_CONFIG weights for proper enemy selection
+                const enemyWeights = {
+                    'class1': 0.5,  // 50% chance for Goblin
+                    'class2': 0.3,  // 30% chance for Orc  
+                    'class3': 0.2   // 20% chance for Dragon
+                };
+                
+                // Select enemy based on weights
+                const enemyTypes = Object.keys(enemyWeights);
+                const weights = Object.values(enemyWeights);
+                const randomIndex = this.weightedRandom(enemyTypes, weights);
+                const randomEnemy = enemyTypes[randomIndex];
+                
                 this.spawnTestEnemy(randomEnemy);
                 
                 // Get enemy name for message
@@ -680,12 +721,12 @@ class GamePage {
                     'class2': 'Orc', 
                     'class3': 'Dragon'
                 };
-                console.log(`👹 Auto-spawned: ${enemyNames[randomEnemy]}`);
+                console.log(`👹 Location-based auto-spawned: ${enemyNames[randomEnemy]} (weight-based selection)`);
             }
             
             // Schedule next spawn with random interval (15-45 seconds)
             const nextSpawnTime = Math.random() * 30000 + 15000; // 15-45 seconds in milliseconds
-            console.log(`⏰ Next enemy in ${Math.round(nextSpawnTime / 1000)} seconds`);
+            console.log(`⏰ Next enemy in ${Math.round(nextSpawnTime / 1000)} seconds (location-based mode)`);
             
             this.autoSpawnInterval = setTimeout(spawnEnemy, nextSpawnTime);
         };
@@ -1045,8 +1086,8 @@ class GamePage {
             this.enemyModel.position.y = -1; // Much higher position
             this.enemyModel.position.set(0, -1, -5); // Move back in Z space
             
-            // Scale down the enemy to make it smaller
-            this.enemyModel.scale.set(0.6, 0.6, 0.6); // Even smaller (60% of original)
+            // Scale enemy to normal size (100%)
+            this.enemyModel.scale.set(1.0, 1.0, 1.0); // Full size
             
             // Add AR integration effects
             this.addAREffects(enemyType);
@@ -1409,9 +1450,8 @@ class GamePage {
         }
     }
 
-    async spawnTestEnemy() {
-        // For testing - spawn class3 enemy (Dragon)
-        const enemyType = 'class3';
+    async spawnTestEnemy(enemyType = 'class3') {
+        // Use provided enemy type or default to class3 for backward compatibility
         const enemyStats = {
             hp: this.getDefaultEnemyHP(enemyType),
             max_hp: this.getDefaultEnemyHP(enemyType),
@@ -1424,9 +1464,14 @@ class GamePage {
         
         // Add log entry
         const gameLog = document.getElementById('game-log');
+        const enemyIcons = {
+            'class1': '👹',
+            'class2': '👺',
+            'class3': '🐉'
+        };
         gameLog.innerHTML = `
             <div class="log-entry debug">
-                🐉 DEBUG: Test enemy spawned! (${enemyStats.name} - HP: ${enemyStats.hp}/${enemyStats.max_hp})
+                ${enemyIcons[enemyType]} DEBUG: Test enemy spawned! (${enemyStats.name} - HP: ${enemyStats.hp}/${enemyStats.max_hp})
             </div>
         ` + gameLog.innerHTML;
     }
