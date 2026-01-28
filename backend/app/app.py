@@ -7,6 +7,7 @@ import uuid
 import time
 import sys
 import os
+import functools
 
 # Add the backend directory to Python path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -45,6 +46,7 @@ limiter = Limiter(
 def validate_json_data(required_fields):
     """Decorator to validate JSON request data"""
     def decorator(f):
+        @functools.wraps(f)
         def wrapper(*args, **kwargs):
             data = request.get_json()
             if not data:
@@ -58,10 +60,12 @@ def validate_json_data(required_fields):
         return wrapper
     return decorator
 
-def get_or_create_player_id():
+def get_or_create_player_id(request_data=None):
     """Get player ID from request or create a new one"""
-    data = request.get_json() or {}
-    player_id = data.get("player_id")
+    if request_data is None:
+        request_data = request.get_json() or {}
+    
+    player_id = request_data.get("player_id")
     
     if not player_id:
         # Create new player ID for new sessions
@@ -80,7 +84,7 @@ def select_character():
     try:
         data = request.get_json()
         character_class = data["character"]
-        player_id = get_or_create_player_id()
+        player_id = get_or_create_player_id(data)
         
         player = player_manager.create_player(player_id, character_class)
         
@@ -107,7 +111,7 @@ def select_character():
 def update_location():
     try:
         data = request.get_json()
-        player_id = get_or_create_player_id()
+        player_id = get_or_create_player_id(data)
         lat, lon = float(data["lat"]), float(data["lon"])
         
         # Get or create player
