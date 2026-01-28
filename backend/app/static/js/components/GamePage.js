@@ -57,7 +57,70 @@ class GamePage {
         app.innerHTML = `
             <div class="game-container">
                 <div class="game-header">
-                    <div class="game-title">Klasick</div>
+                    <div class="game-title">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 900 220"
+                          width="100%"
+                          height="auto"
+                          class="game-logo-small"
+                        >
+                          <defs>
+                            <linearGradient id="textGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stop-color="#f9dc8f"/>
+                              <stop offset="35%" stop-color="#e1b64b"/>
+                              <stop offset="36%" stop-color="#2a62c9"/>
+                              <stop offset="100%" stop-color="#123a7a"/>
+                            </linearGradient>
+                            <linearGradient id="shineGradient" x1="0" y1="0" x2="1" y2="0">
+                              <stop offset="0%" stop-color="rgba(255,255,255,0)"/>
+                              <stop offset="50%" stop-color="rgba(255,255,255,0.6)"/>
+                              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+                            </linearGradient>
+                            <filter id="shadow">
+                              <feDropShadow dx="6" dy="6" stdDeviation="4" flood-color="#0b2f66"/>
+                            </filter>
+                            <style>
+                              .float { animation: float 4s ease-in-out infinite; }
+                              @keyframes float {
+                                0%,100% { transform: translateY(0); }
+                                50% { transform: translateY(-6px); }
+                              }
+                              .shine { animation: shine 3s linear infinite; }
+                              @keyframes shine {
+                                from { transform: translateX(-300px); }
+                                to { transform: translateX(300px); }
+                              }
+                            </style>
+                          </defs>
+                          <g class="float" filter="url(#shadow)">
+                            <text x="80" y="150"
+                              font-size="120"
+                              font-weight="900"
+                              font-family="Impact, Arial Black, sans-serif"
+                              fill="url(#textGradient)"
+                              stroke="#caa24a"
+                              stroke-width="4"
+                              transform="skewX(-8)">
+                              KLA
+                            </text>
+                            <text x="430" y="150"
+                              font-size="120"
+                              font-weight="900"
+                              font-family="Impact, Arial Black, sans-serif"
+                              fill="url(#textGradient)"
+                              stroke="#caa24a"
+                              stroke-width="4"
+                              transform="skewX(8)">
+                              SICK
+                            </text>
+                          </g>
+                          <rect x="-300" y="40" width="300" height="160"
+                            fill="url(#shineGradient)"
+                            class="shine"
+                            opacity="0.6"/>
+                        </svg>
+                    </div>
                     <div class="player-stats">
                         <div class="hp-container">
                             <div class="hp-bar">
@@ -91,21 +154,32 @@ class GamePage {
                 </div>
 
                 <div class="game-controls">
-                    <div id="actionButtons" class="action-buttons">
+                    <div class="action-buttons">
                         <button class="action-button" id="attackBtn" onclick="gamePage.playerAttack()">Attack</button>
                         <button class="action-button" id="skillBtn" onclick="gamePage.useSkill()">Skill</button>
                         <button class="action-button" id="healBtn" onclick="gamePage.heal()">Heal</button>
                         <button class="action-button" id="escapeBtn" onclick="gamePage.escape()">Escape</button>
                     </div>
-                    <div id="status-message" class="status-message">
-                        📍 Move around to find enemies...
-                    </div>
-                    <div class="debug-controls">
-                        <button class="btn-debug" onclick="gamePage.testAssetLoading()">🔍 Test Assets</button>
-                        <button class="btn-debug" onclick="gamePage.spawnGoblin()">👹 Spawn Goblin</button>
-                        <button class="btn-debug" onclick="gamePage.spawnOrc()">👺 Spawn Orc</button>
-                        <button class="btn-debug" onclick="gamePage.spawnTestEnemy()">🐉 Spawn Dragon</button>
-                        <button class="btn-debug" onclick="gamePage.forceLocationUpdate()">📍 Force Location Update</button>
+                    
+                    <!-- Debug Modal Toggle -->
+                    <button class="debug-toggle" onclick="gamePage.toggleDebugModal()">⚙️</button>
+                </div>
+
+                <!-- Debug Modal -->
+                <div id="debugModal" class="debug-modal" style="display: none;">
+                    <div class="debug-modal-content">
+                        <div class="debug-modal-header">
+                            <h3>Debug Controls</h3>
+                            <button class="debug-close" onclick="gamePage.toggleDebugModal()">×</button>
+                        </div>
+                        <div class="debug-controls">
+                            <button class="btn-debug" onclick="gamePage.forceLocationUpdate()">Force Location Update</button>
+                            <button class="btn-debug" onclick="gamePage.spawnTestEnemy('class1')">Spawn Goblin</button>
+                            <button class="btn-debug" onclick="gamePage.spawnTestEnemy('class2')">Spawn Orc</button>
+                            <button class="btn-debug" onclick="gamePage.spawnTestEnemy('class3')">Spawn Dragon</button>
+                            <button class="btn-debug" onclick="gamePage.clearEnemy()">Clear Enemy</button>
+                            <button class="btn-debug" onclick="gamePage.testCombat()">Test Combat</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -167,12 +241,44 @@ class GamePage {
         if (navigator.geolocation) {
             this.locationWatcher = navigator.geolocation.watchPosition(
                 pos => this.handleLocationUpdate(pos),
-                err => console.log("Location access denied:", err),
-                { enableHighAccuracy: true }
+                err => {
+                    console.log("Location access denied:", err);
+                    // Start automatic spawning if location is denied
+                    this.startAutoSpawning();
+                },
+                { 
+                    enableHighAccuracy: true,
+                    maximumAge: 0,
+                    timeout: 5000
+                }
             );
+            
+            // Also start auto-spawning as backup
+            this.startAutoSpawning();
         } else {
             console.log("Geolocation not available");
+            // Start automatic spawning if geolocation is not available
+            this.startAutoSpawning();
         }
+    }
+
+    startAutoSpawning() {
+        // Auto-spawn enemies every 10-20 seconds for testing
+        const spawnInterval = () => {
+            if (!this.gameState.inCombat) {
+                const enemyTypes = ['class1', 'class2', 'class3'];
+                const randomEnemy = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+                this.spawnTestEnemy(randomEnemy);
+            }
+            
+            // Schedule next spawn
+            const nextSpawnTime = 10000 + Math.random() * 10000; // 10-20 seconds
+            this.spawnTimer = setTimeout(spawnInterval, nextSpawnTime);
+        };
+        
+        // Start first spawn after 5 seconds
+        this.spawnTimer = setTimeout(spawnInterval, 5000);
+        console.log('🎮 Auto-spawning enabled - enemies will spawn every 10-20 seconds');
     }
 
     setupThreeJS() {
@@ -893,6 +999,15 @@ class GamePage {
         
         console.log(`👺 DEBUG: Spawning Orc - HP: ${enemyStats.hp}/${enemyStats.max_hp}`);
         this.spawnEnemy(enemyType, enemyStats);
+    }
+
+    toggleDebugModal() {
+        const modal = document.getElementById('debugModal');
+        if (modal.style.display === 'none') {
+            modal.style.display = 'flex';
+        } else {
+            modal.style.display = 'none';
+        }
     }
 
     async forceLocationUpdate() {

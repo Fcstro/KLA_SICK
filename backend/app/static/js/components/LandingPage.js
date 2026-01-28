@@ -9,28 +9,80 @@ class LandingPage {
         app.innerHTML = `
             <div class="landing-container">
                 <div class="logo-container">
-                    <span class="word left">KLA</span>
-                    <span class="word right">SICK</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 900 220"
+                      width="100%"
+                      height="auto"
+                      class="game-logo"
+                    >
+                      <defs>
+                        <linearGradient id="textGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stop-color="#f9dc8f"/>
+                          <stop offset="35%" stop-color="#e1b64b"/>
+                          <stop offset="36%" stop-color="#2a62c9"/>
+                          <stop offset="100%" stop-color="#123a7a"/>
+                        </linearGradient>
+                        <linearGradient id="shineGradient" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stop-color="rgba(255,255,255,0)"/>
+                          <stop offset="50%" stop-color="rgba(255,255,255,0.6)"/>
+                          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+                        </linearGradient>
+                        <filter id="shadow">
+                          <feDropShadow dx="6" dy="6" stdDeviation="4" flood-color="#0b2f66"/>
+                        </filter>
+                        <style>
+                          .float { animation: float 4s ease-in-out infinite; }
+                          @keyframes float {
+                            0%,100% { transform: translateY(0); }
+                            50% { transform: translateY(-6px); }
+                          }
+                          .shine { animation: shine 3s linear infinite; }
+                          @keyframes shine {
+                            from { transform: translateX(-300px); }
+                            to { transform: translateX(300px); }
+                          }
+                        </style>
+                      </defs>
+                      <g class="float" filter="url(#shadow)">
+                        <text x="80" y="150"
+                          font-size="120"
+                          font-weight="900"
+                          font-family="Impact, Arial Black, sans-serif"
+                          fill="url(#textGradient)"
+                          stroke="#caa24a"
+                          stroke-width="4"
+                          transform="skewX(-8)">
+                          KLA
+                        </text>
+                        <text x="430" y="150"
+                          font-size="120"
+                          font-weight="900"
+                          font-family="Impact, Arial Black, sans-serif"
+                          fill="url(#textGradient)"
+                          stroke="#caa24a"
+                          stroke-width="4"
+                          transform="skewX(8)">
+                          SICK
+                        </text>
+                      </g>
+                      <rect x="-300" y="40" width="300" height="160"
+                        fill="url(#shineGradient)"
+                        class="shine"
+                        opacity="0.6"/>
+                    </svg>
                 </div>
                 
                 <div class="game-description">
-                    <h2>WebAR RPG Adventure</h2>
-                    <p>Battle enemies in augmented reality!</p>
+                    <p>🎮 WebAR RPG Adventure</p>
+                    <p>🗺️ Explore your real world</p>
+                    <p>⚔️ Battle epic enemies</p>
+                    <p>🏆 Level up your hero</p>
                 </div>
-
+                
                 <div class="main-actions">
-                    <button class="btn-start" onclick="window.router.navigate('/character')">
-                        🎮 Start Adventure
-                    </button>
-                    <button class="btn-leaderboard" onclick="window.landingPage.toggleLeaderboard()">
-                        🏆 View Leaderboard
-                    </button>
-                </div>
-
-                <div id="leaderboard-container" class="leaderboard-container" style="display: none;">
-                    <h3>🏆 Top Players</h3>
-                    <div id="leaderboard-list" class="leaderboard-list">
-                        <div class="loading">Loading leaderboard...</div>
+                    <button class="btn-start" onclick="window.router.navigate('/character')">Start Adventure</button>
+                    <button class="btn-leaderboard" onclick="window.router.navigate('/leaderboard')">Leaderboard</button>
                     </div>
                 </div>
             </div>
