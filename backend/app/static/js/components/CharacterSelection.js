@@ -16,7 +16,7 @@ class CharacterSelection {
         app.innerHTML = `
             <div class="character-selection">
                 <div class="header">
-                    <div class="logo">
+                    <div class="logo-container">
                         <span class="word left">KLA</span>
                         <span class="word right">SICK</span>
                     </div>

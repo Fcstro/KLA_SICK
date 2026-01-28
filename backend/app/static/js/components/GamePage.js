@@ -58,7 +58,7 @@ class GamePage {
             <div class="game-container">
                 <div class="game-header">
                     <div class="game-title">
-                        <div class="logo">
+                        <div class="logo-container">
                             <span class="word left">KLA</span>
                             <span class="word right">SICK</span>
                         </div>

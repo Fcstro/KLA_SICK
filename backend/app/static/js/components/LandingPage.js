@@ -9,10 +9,8 @@ class LandingPage {
         app.innerHTML = `
             <div class="landing-container">
                 <div class="logo-container">
-                    <div class="logo">
-                        <span class="word left">KLA</span>
-                        <span class="word right">SICK</span>
-                    </div>
+                    <span class="word left">KLA</span>
+                    <span class="word right">SICK</span>
                 </div>
                 
                 <div class="game-description">
