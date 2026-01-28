@@ -520,7 +520,7 @@ body.game-page-body {
     border-radius: 12px;
     padding: 10px 12px;  /* Smaller padding */
     border: 1px solid rgba(255,255,255,0.1);
-    z-index: 5;  /* Lower z-index than header */
+    z-index: 20;  /* Higher z-index to ensure visibility above other elements */
 }
 
 .hp-container {
@@ -720,18 +720,23 @@ body.game-page-body {
 
 .game-action-buttons {
     position: absolute;
-    bottom: 30px;
+    bottom: 80px;  /* Raised from 30px to 80px for better visibility */
     left: 50%;
     transform: translateX(-50%);
-    display: none;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 20px;
+    display: none;  /* Hidden by default - only show when enemy appears */
+    gap: 15px;
+    z-index: 15;  /* Higher z-index to ensure visibility */
+    pointer-events: auto;
+}
+
+.game-action-buttons.show {
+    display: flex;
+    animation: slideUp 0.3s ease-out;
 }
 
 .action-buttons.show {
-    display: grid;
+    display: flex;
+    animation: slideUp 0.3s ease-out;
 }
 
 .action-button {

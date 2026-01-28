@@ -105,7 +105,7 @@ class GamePage {
                 </div>
 
                 <div class="game-controls">
-                    <div class="action-buttons" id="actionButtons">
+                    <div class="game-action-buttons" id="actionButtons">
                         <button class="action-button" id="attackBtn" onclick="gamePage.playerAttack()">Attack</button>
                         <button class="action-button" id="skillBtn" onclick="gamePage.useSkill()">Skill</button>
                         <button class="action-button" id="healBtn" onclick="gamePage.heal()">Heal</button>
@@ -900,9 +900,12 @@ class GamePage {
         // Load 3D enemy model first
         this.enemyModel = await this.load3DEnemyModel(enemyType);
         if (this.enemyModel && this.threeScene) {
-            // Position enemy lower to prevent cutoff by header
-            this.enemyModel.position.y = -2; // Lower position to prevent cutoff
-            this.enemyModel.position.set(0, -2, 0);
+            // Position enemy properly to prevent cutoff
+            this.enemyModel.position.y = -1; // Much higher position
+            this.enemyModel.position.set(0, -1, -5); // Move back in Z space
+            
+            // Scale down the enemy to make it smaller
+            this.enemyModel.scale.set(0.6, 0.6, 0.6); // Even smaller (60% of original)
             
             // Add AR integration effects
             this.addAREffects(enemyType);
