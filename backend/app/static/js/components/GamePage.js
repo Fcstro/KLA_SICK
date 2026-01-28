@@ -1186,7 +1186,7 @@ class GamePage {
             this.enemyModel.position.set(0, -1, -5); // Move back in Z space
             
             // Scale enemy to normal size (100%)
-            this.enemyModel.scale.set(1.0, 1.0, 1.0); // Full size
+            this.enemyModel.scale.set(1.0, 2.0, 3.0); // Full size
             
             // Add AR integration effects
             this.addAREffects(enemyType);
