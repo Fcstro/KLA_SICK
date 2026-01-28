@@ -680,4 +680,8 @@ def player_status():
         return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    # HTTPS required for camera access in modern browsers
+    import ssl
+    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+    context.load_default_certs()
+    app.run(host="0.0.0.0", port=5000, debug=False, ssl_context=context)
