@@ -157,7 +157,7 @@ def update_location():
             print("🎯 Attempting to spawn enemy...")
             # Get all existing enemies in combat to check area limits
             existing_enemies = []
-            for combat_id, combat_data in combat_system.combats.items():
+            for combat_id, combat_data in combat_system.active_combats.items():
                 if combat_data.get('player_id') == player_id:
                     enemy = combat_data.get('enemy')
                     if enemy:

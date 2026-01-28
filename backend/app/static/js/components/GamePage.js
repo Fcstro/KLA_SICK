@@ -15,6 +15,8 @@ class GamePage {
         // Auto-spawn properties
         this.autoSpawnEnabled = false;
         this.autoSpawnInterval = null;
+        this.autoSpawnMode = 'location'; // 'location' or 'time-based'
+        this.autoSpawnTime = 15000; // 15 seconds default
         
         // Location error tracking
         this.locationErrorCount = 0;
@@ -136,6 +138,8 @@ class GamePage {
                             <button class="btn-debug" onclick="gamePage.clearEnemy()">Clear Enemy</button>
                             <button class="btn-debug" onclick="gamePage.testCombat()">Test Combat</button>
                             <button class="btn-debug" id="autoSpawnBtn" onclick="gamePage.toggleAutoSpawn()">Enable Auto Spawn</button>
+                            <button class="btn-debug" id="timeBasedSpawnBtn" onclick="gamePage.toggleTimeBasedSpawn()">Time-Based Mode (15s)</button>
+                            <button class="btn-debug" id="fastSpawnBtn" onclick="gamePage.toggleFastSpawn()">Fast Mode (5s)</button>
                         </div>
                     </div>
                 </div>
@@ -494,11 +498,142 @@ class GamePage {
         console.log('🛑 Location tracking disabled due to repeated errors');
     }
     
+    toggleTimeBasedSpawn() {
+        const button = document.getElementById('timeBasedSpawnBtn');
+        
+        if (this.autoSpawnEnabled && this.autoSpawnMode === 'time-based') {
+            // Disable time-based spawn
+            this.autoSpawnEnabled = false;
+            if (this.autoSpawnInterval) {
+                clearInterval(this.autoSpawnInterval);
+                this.autoSpawnInterval = null;
+            }
+            button.textContent = 'Time-Based Mode (15s)';
+            button.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
+            this.showMessage('🛑 Time-based auto-spawn disabled', 'info');
+            console.log('🛑 Time-based auto-spawn disabled');
+        } else {
+            // Disable other modes first
+            if (this.autoSpawnEnabled) {
+                this.disableAllAutoSpawn();
+            }
+            
+            // Enable time-based spawn
+            this.autoSpawnEnabled = true;
+            this.autoSpawnMode = 'time-based';
+            this.autoSpawnTime = 15000; // 15 seconds
+            button.textContent = 'Disable Time-Based';
+            button.style.background = 'linear-gradient(45deg, #f44336, #d32f2f)';
+            this.showMessage('🚀 Time-based auto-spawn enabled - enemies every 15 seconds', 'success');
+            console.log('🚀 Time-based auto-spawn enabled (15s interval)');
+            
+            // Start spawning enemies
+            this.startTimeBasedSpawning();
+        }
+    }
+    
+    toggleFastSpawn() {
+        const button = document.getElementById('fastSpawnBtn');
+        
+        if (this.autoSpawnEnabled && this.autoSpawnMode === 'fast') {
+            // Disable fast spawn
+            this.autoSpawnEnabled = false;
+            if (this.autoSpawnInterval) {
+                clearInterval(this.autoSpawnInterval);
+                this.autoSpawnInterval = null;
+            }
+            button.textContent = 'Fast Mode (5s)';
+            button.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
+            this.showMessage('🛑 Fast auto-spawn disabled', 'info');
+            console.log('🛑 Fast auto-spawn disabled');
+        } else {
+            // Disable other modes first
+            if (this.autoSpawnEnabled) {
+                this.disableAllAutoSpawn();
+            }
+            
+            // Enable fast spawn
+            this.autoSpawnEnabled = true;
+            this.autoSpawnMode = 'fast';
+            this.autoSpawnTime = 5000; // 5 seconds
+            button.textContent = 'Disable Fast Mode';
+            button.style.background = 'linear-gradient(45deg, #f44336, #d32f2f)';
+            this.showMessage('🚀 Fast auto-spawn enabled - enemies every 5 seconds', 'success');
+            console.log('🚀 Fast auto-spawn enabled (5s interval)');
+            
+            // Start spawning enemies
+            this.startTimeBasedSpawning();
+        }
+    }
+    
+    disableAllAutoSpawn() {
+        // Disable location-based
+        const locationBtn = document.getElementById('autoSpawnBtn');
+        if (locationBtn) {
+            locationBtn.textContent = 'Enable Auto Spawn';
+            locationBtn.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
+        }
+        
+        // Disable time-based
+        const timeBtn = document.getElementById('timeBasedSpawnBtn');
+        if (timeBtn) {
+            timeBtn.textContent = 'Time-Based Mode (15s)';
+            timeBtn.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
+        }
+        
+        // Disable fast
+        const fastBtn = document.getElementById('fastSpawnBtn');
+        if (fastBtn) {
+            fastBtn.textContent = 'Fast Mode (5s)';
+            fastBtn.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
+        }
+        
+        // Clear interval
+        if (this.autoSpawnInterval) {
+            clearInterval(this.autoSpawnInterval);
+            this.autoSpawnInterval = null;
+        }
+        this.autoSpawnEnabled = false;
+    }
+    
+    startTimeBasedSpawning() {
+        if (!this.autoSpawnEnabled || this.autoSpawnMode === 'location') return;
+        
+        const spawnEnemy = () => {
+            if (!this.autoSpawnEnabled || this.autoSpawnMode === 'location') return;
+            
+            // Only spawn if not in combat
+            if (!this.gameState.inCombat) {
+                const enemyTypes = ['class1', 'class2', 'class3'];
+                const randomEnemy = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+                this.spawnTestEnemy(randomEnemy);
+                
+                // Get enemy name for message
+                const enemyNames = {
+                    'class1': 'Goblin',
+                    'class2': 'Orc', 
+                    'class3': 'Dragon'
+                };
+                const modeName = this.autoSpawnMode === 'fast' ? 'Fast' : 'Time-based';
+                console.log(`👹 ${modeName} auto-spawned: ${enemyNames[randomEnemy]}`);
+            }
+            
+            // Schedule next spawn
+            const nextSpawnTime = this.autoSpawnTime;
+            console.log(`⏰ Next enemy in ${nextSpawnTime / 1000} seconds (${this.autoSpawnMode} mode)`);
+            
+            this.autoSpawnInterval = setTimeout(spawnEnemy, nextSpawnTime);
+        };
+        
+        // Start first spawn immediately
+        spawnEnemy();
+    }
+    
     toggleAutoSpawn() {
         const button = document.getElementById('autoSpawnBtn');
         
-        if (this.autoSpawnEnabled) {
-            // Disable auto-spawn
+        if (this.autoSpawnEnabled && this.autoSpawnMode === 'location') {
+            // Disable location-based auto-spawn
             this.autoSpawnEnabled = false;
             if (this.autoSpawnInterval) {
                 clearInterval(this.autoSpawnInterval);
@@ -506,15 +641,21 @@ class GamePage {
             }
             button.textContent = 'Enable Auto Spawn';
             button.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
-            this.showMessage('🛑 Auto-spawn disabled', 'info');
-            console.log('🛑 Auto-spawn disabled');
+            this.showMessage('🛑 Location-based auto-spawn disabled', 'info');
+            console.log('🛑 Location-based auto-spawn disabled');
         } else {
-            // Enable auto-spawn
+            // Disable other modes first
+            if (this.autoSpawnEnabled) {
+                this.disableAllAutoSpawn();
+            }
+            
+            // Enable location-based auto-spawn
             this.autoSpawnEnabled = true;
+            this.autoSpawnMode = 'location';
             button.textContent = 'Disable Auto Spawn';
             button.style.background = 'linear-gradient(45deg, #f44336, #d32f2f)';
-            this.showMessage('🚀 Auto-spawn enabled - enemies every 15-45 seconds', 'success');
-            console.log('🚀 Auto-spawn enabled');
+            this.showMessage('🚀 Location-based auto-spawn enabled - enemies every 15-45 seconds', 'success');
+            console.log('🚀 Location-based auto-spawn enabled');
             
             // Start spawning enemies
             this.startAutoSpawning();
