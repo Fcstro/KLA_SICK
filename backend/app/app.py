@@ -33,7 +33,7 @@ def get_local_ip():
 app = Flask(__name__)
 # Restrict CORS to specific origins for security
 CORS(app, resources={
-    r"/*": {"origins": ["http://localhost:5173", "http://localhost:3000", "https://*.onrender.com"]}
+    r"/*": {"origins": ["http://localhost:5173", "http://localhost:3000"]}
 })
 
 # Rate limiting
