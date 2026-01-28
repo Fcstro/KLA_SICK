@@ -576,6 +576,21 @@
                 console.error('Heal error:', error);
                 showMessage('Heal failed', 'error');
             }
+        }
+
+        // Escape
+        async function escape() {
+            if (!gameState.inCombat) {
+                showMessage('No combat to escape from!', 'error');
+                return;
+            }
+            
+            gameState.enemy = null;
+            gameState.inCombat = false;
+            document.getElementById('enemyInfo').style.display = 'none';
+            showMessage('Escaped from combat!', 'success');
+        }
+
         // Update Stats
         function updateStats() {
             if (!gameState.player) return;
