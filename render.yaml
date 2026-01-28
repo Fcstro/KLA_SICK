@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: ar-rpg-backend
+    env: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: python backend/app/app.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+      - key: FLASK_ENV
+        value: production
+    healthCheckPath: /
+    autoDeploy: true

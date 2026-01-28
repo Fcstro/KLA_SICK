@@ -5,6 +5,12 @@ from flask_limiter.util import get_remote_address
 import socket
 import uuid
 import time
+import sys
+import os
+
+# Add the backend directory to Python path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from game.player import player_manager
 from game.combat import combat_system
 from game.movement import check_ar_enemy_spawn, spawn_enemy
