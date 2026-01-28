@@ -1,8 +1,8 @@
 # Game configuration constants
 ENEMY_STATS = {
-    "class1": {"hp": 30, "atk": 5, "name": "Goblin", "xp_reward": 10},
-    "class2": {"hp": 50, "atk": 10, "name": "Orc", "xp_reward": 25},
-    "class3": {"hp": 100, "atk": 15, "name": "Dragon", "xp_reward": 50}
+    "class1": {"hp": 80, "atk": 5, "name": "Goblin", "xp_reward": 10},
+    "class2": {"hp": 130, "atk": 10, "name": "Orc", "xp_reward": 25},
+    "class3": {"hp": 200, "atk": 15, "name": "Dragon", "xp_reward": 50}
 }
 
 CHARACTERS = {
