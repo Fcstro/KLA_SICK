@@ -63,18 +63,20 @@ class GamePage {
                             <span class="word right">SICK</span>
                         </div>
                     </div>
-                    <div class="player-stats">
-                        <div class="hp-container">
-                            <div class="hp-bar">
-                                <div class="hp-fill" id="playerHpFill" style="width: 100%"></div>
-                                <div class="hp-text" id="playerHpText">100/100</div>
-                            </div>
-                        </div>
-                        <div class="stat-item level">Level: <span id="level">1</span></div>
-                        <div class="stat-item xp">XP: <span id="xp">0</span></div>
-                        <div class="stat-item kills">Kills: <span id="kills">0</span></div>
-                    </div>
                 </div>
+                
+                <div class="player-stats">
+                    <div class="hp-container">
+                        <div class="hp-bar">
+                            <div class="hp-fill" id="playerHpFill" style="width: 100%"></div>
+                            <div class="hp-text" id="playerHpText">100/100</div>
+                        </div>
+                    </div>
+                    <div class="stat-item level">Level: <span id="level">1</span></div>
+                    <div class="stat-item xp">XP: <span id="xp">0</span></div>
+                    <div class="stat-item kills">Kills: <span id="kills">0</span></div>
+                </div>
+                
                 <button class="btn-back" onclick="window.router.navigate('/')">← Back</button>
 
                 <div class="ar-container">
