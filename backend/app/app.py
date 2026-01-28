@@ -88,7 +88,7 @@ def get_characters():
     return jsonify(CHARACTERS)
 
 @app.route("/config/skills", methods=["GET"])
-def get_skills():
+def get_skills_config():
     """Serve skills configuration"""
     return jsonify(SKILLS)
 
