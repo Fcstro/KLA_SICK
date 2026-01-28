@@ -114,11 +114,14 @@ def update_location():
         lon = data["lon"]
         player_id = data["player_id"]
         
+        print(f"📍 Location update: player_id={player_id}, lat={lat}, lon={lon}")
+        
         from game.config import SPAWN_CONFIG, ENEMY_STATS
         from game.spawn import calculate_distance, should_spawn_enemy, get_enemy_type_by_weight, check_area_limits, spawn_enemy
         
         player = player_manager.get_player(player_id)
         if not player:
+            print(f"❌ Player not found: {player_id}")
             return jsonify({"error": "Player not found"}), 400
         
         # Calculate distance moved
@@ -133,11 +136,15 @@ def update_location():
                 lat, lon
             )
             
+            print(f"📏 Distance traveled: {distance_traveled}m")
+            
             # Check if should spawn based on config distance
             if distance_traveled >= SPAWN_CONFIG["spawn_distance"]:
                 should_spawn = should_spawn_enemy(SPAWN_CONFIG["spawn_probability"])
                 if not should_spawn:
                     spawn_reason = "Probability check failed"
+            else:
+                spawn_reason = f"Distance threshold not met ({SPAWN_CONFIG['spawn_distance']}m required)"
         else:
             # First location update, don't spawn immediately
             should_spawn = False
@@ -147,6 +154,7 @@ def update_location():
         player['last_location'] = {'lat': lat, 'lon': lon}
         
         if should_spawn and not combat_system.get_combat(player_id):
+            print("🎯 Attempting to spawn enemy...")
             # Get all existing enemies in combat to check area limits
             existing_enemies = []
             for combat_id, combat_data in combat_system.combats.items():
@@ -165,6 +173,7 @@ def update_location():
                 enemy = spawn_enemy(enemy_type, player_location)
                 combat_system.start_combat(player_id, enemy)
                 
+                print(f"✅ Enemy spawned: {enemy_type}")
                 return jsonify({
                     "spawn": True,
                     "enemy": enemy_type,
@@ -173,6 +182,7 @@ def update_location():
                     "spawn_reason": "Config-based spawn successful"
                 })
             else:
+                print(f"❌ Spawn blocked: {reason}")
                 return jsonify({
                     "spawn": False,
                     "distance_traveled": distance_traveled,
@@ -180,6 +190,9 @@ def update_location():
                     "config_used": SPAWN_CONFIG
                 })
         else:
+            combat = combat_system.get_combat(player_id)
+            if combat:
+                spawn_reason = "Player already in combat"
             return jsonify({
                 "spawn": False,
                 "distance_traveled": distance_traveled,
@@ -188,8 +201,12 @@ def update_location():
             })
         
     except ValueError as e:
+        print(f"❌ ValueError in update-location: {e}")
         return jsonify({"error": str(e)}), 400
     except Exception as e:
+        print(f"❌ Unexpected error in update-location: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": "Internal server error"}), 500
 
 @app.route("/player-attack", methods=["POST"])

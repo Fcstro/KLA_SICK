@@ -12,6 +12,10 @@ class GamePage {
         this.animationMixer = null;
         this.enemyAnimations = {};
         
+        // Auto-spawn properties
+        this.autoSpawnEnabled = false;
+        this.autoSpawnInterval = null;
+        
         // Game State
         this.gameState = {
             playerId: null,
@@ -128,6 +132,7 @@ class GamePage {
                             <button class="btn-debug" onclick="gamePage.spawnTestEnemy('class3')">Spawn Dragon</button>
                             <button class="btn-debug" onclick="gamePage.clearEnemy()">Clear Enemy</button>
                             <button class="btn-debug" onclick="gamePage.testCombat()">Test Combat</button>
+                            <button class="btn-debug" id="autoSpawnBtn" onclick="gamePage.toggleAutoSpawn()">Enable Auto Spawn</button>
                         </div>
                     </div>
                 </div>
@@ -474,20 +479,63 @@ class GamePage {
         }
     }
 
+    toggleAutoSpawn() {
+        const button = document.getElementById('autoSpawnBtn');
+        
+        if (this.autoSpawnEnabled) {
+            // Disable auto-spawn
+            this.autoSpawnEnabled = false;
+            if (this.autoSpawnInterval) {
+                clearInterval(this.autoSpawnInterval);
+                this.autoSpawnInterval = null;
+            }
+            button.textContent = 'Enable Auto Spawn';
+            button.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
+            this.showMessage('🛑 Auto-spawn disabled', 'info');
+            console.log('🛑 Auto-spawn disabled');
+        } else {
+            // Enable auto-spawn
+            this.autoSpawnEnabled = true;
+            button.textContent = 'Disable Auto Spawn';
+            button.style.background = 'linear-gradient(45deg, #f44336, #d32f2f)';
+            this.showMessage('🚀 Auto-spawn enabled - enemies every 15-45 seconds', 'success');
+            console.log('🚀 Auto-spawn enabled');
+            
+            // Start spawning enemies
+            this.startAutoSpawning();
+        }
+    }
+    
     startAutoSpawning() {
-        // Auto-spawn enemies when location changes (movement-based spawning)
-        const spawnOnMovement = () => {
+        if (!this.autoSpawnEnabled) return;
+        
+        const spawnEnemy = () => {
+            if (!this.autoSpawnEnabled) return;
+            
+            // Only spawn if not in combat
             if (!this.gameState.inCombat) {
                 const enemyTypes = ['class1', 'class2', 'class3'];
                 const randomEnemy = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
                 this.spawnTestEnemy(randomEnemy);
-                console.log(`🎮 Enemy spawned due to movement: ${randomEnemy}`);
+                
+                // Get enemy name for message
+                const enemyNames = {
+                    'class1': 'Goblin',
+                    'class2': 'Orc', 
+                    'class3': 'Dragon'
+                };
+                console.log(`👹 Auto-spawned: ${enemyNames[randomEnemy]}`);
             }
+            
+            // Schedule next spawn with random interval (15-45 seconds)
+            const nextSpawnTime = Math.random() * 30000 + 15000; // 15-45 seconds in milliseconds
+            console.log(`⏰ Next enemy in ${Math.round(nextSpawnTime / 1000)} seconds`);
+            
+            this.autoSpawnInterval = setTimeout(spawnEnemy, nextSpawnTime);
         };
         
-        // Store this as a method that can be called when location changes
-        this.spawnOnMovement = spawnOnMovement;
-        console.log('🎮 Movement-based spawning enabled - enemies will spawn when you move!');
+        // Start first spawn immediately
+        spawnEnemy();
     }
 
     setupThreeJS() {
@@ -1752,6 +1800,7 @@ class GamePage {
     }
 
     cleanup() {
+        // Clear location watcher
         if (this.locationWatcher) {
             navigator.geolocation.clearWatch(this.locationWatcher);
         }
@@ -1759,8 +1808,22 @@ class GamePage {
             this.cameraStream.getTracks().forEach(track => track.stop());
         }
         
+        // Clear auto-spawn
+        if (this.autoSpawnInterval) {
+            clearInterval(this.autoSpawnInterval);
+            this.autoSpawnInterval = null;
+        }
+        this.autoSpawnEnabled = false;
+        
         // Cleanup Three.js resources
-        this.clearEnemy3D();
+        if (this.enemyModel) {
+            this.threeScene.remove(this.enemyModel);
+            this.enemyModel = null;
+        }
+        if (this.animationMixer) {
+            this.animationMixer.stopAllAction();
+            this.animationMixer = null;
+        }
         if (this.threeRenderer) {
             this.threeRenderer.dispose();
             const container = document.getElementById('enemy-3d-container');
