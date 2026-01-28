@@ -16,19 +16,19 @@ CHARACTERS = {
 # Skills configuration - 3 skills per character with one heal/buff
 SKILLS = {
     "Volta": [
-        {"name": "Power Strike", "damage_multiplier": 2.0, "cooldown": 10, "description": "Double damage attack", "type": "damage"},
-        {"name": "Shield Bash", "damage": 15, "cooldown": 8, "description": "Stun enemy for 1 turn", "type": "damage"},
+        {"name": "Electrokinesis", "damage_multiplier": 2.0, "cooldown": 10, "description": "Double damage attack", "type": "damage"},
+        {"name": "Tanging Ina SMASH", "damage": 15, "cooldown": 8, "description": "Stun enemy for 1 turn", "type": "damage"},
         {"name": "Battle Heal", "heal_amount": 40, "cooldown": 15, "description": "Restore 40 HP", "type": "heal"}
     ],
     "Pedro Penduko": [
         {"name": "Fireball", "damage_multiplier": 2.5, "cooldown": 12, "description": "Powerful magic attack", "type": "damage"},
         {"name": "Arcane Missiles", "damage": 35, "cooldown": 10, "description": "Multiple magic projectiles", "type": "damage"},
-        {"name": "Mana Shield", "damage_reduction": 0.5, "duration": 3, "cooldown": 20, "description": "Reduce damage by 50% for 3 turns", "type": "buff"}
+        {"name": "Mutya ", "damage_reduction": 0.5, "duration": 3, "cooldown": 20, "description": "Reduce damage by 50% for 3 turns", "type": "buff"}
     ],
     "Kidlat": [
-        {"name": "Precise Shot", "damage_multiplier": 1.8, "cooldown": 8, "description": "High accuracy attack", "type": "damage"},
+        {"name": "Thunder Bolt", "damage_multiplier": 1.8, "cooldown": 8, "description": "High accuracy attack", "type": "damage"},
         {"name": "Anti-Bastos", "damage": 30, "cooldown": 15, "description": "Area damage attack", "type": "damage"},
-        {"name": "Nature's Heal", "heal_amount": 35, "cooldown": 12, "description": "Restore 35 HP", "type": "heal"}
+        {"name": "Perfect Storm", "heal_amount": 35, "cooldown": 12, "description": "Restore 35 HP", "type": "heal"}
     ],
     "Victor Magtanggol": [
         {"name": "aldenkantotmaine", "damage": 25, "cooldown": 10, "description": "Holy damage attack", "type": "damage"},
