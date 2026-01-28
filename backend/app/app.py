@@ -13,11 +13,11 @@ import functools
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from game.player import player_manager
+from game.config import ENEMY_STATS, CHARACTERS, SKILLS, SPAWN_CONFIG, HEAL_COOLDOWN, HEAL_AMOUNT, CRIT_CHANCE, CRIT_MULTIPLIER, DODGE_CHANCE
 from game.combat import combat_system
 from game.movement import check_ar_enemy_spawn, spawn_enemy
 from game.enemies import enemy_manager
 from game.ar_spawning import ar_spawning_system
-from game.config import CHARACTERS
 
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

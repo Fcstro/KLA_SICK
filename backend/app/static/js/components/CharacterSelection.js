@@ -2,11 +2,11 @@
 class CharacterSelection {
     constructor() {
         this.characters = {
-            warrior: { name: "Warrior", hp: 120, atk: 15, description: "High health, balanced damage" },
-            mage: { name: "Mage", hp: 80, atk: 25, description: "Low health, high damage" },
-            archer: { name: "Archer", hp: 100, atk: 18, description: "Balanced stats" },
-            healer: { name: "Healer", hp: 110, atk: 12, description: "High health, support role" },
-            rogue: { name: "Rogue", hp: 90, atk: 20, description: "Medium health, high damage" }
+            warrior: { name: "Volta", hp: 120, atk: 15, description: "High health, balanced damage" },
+            mage: { name: "Pedro Penduko", hp: 80, atk: 25, description: "Low health, high damage" },
+            archer: { name: "Kidlat", hp: 100, atk: 18, description: "Balanced stats" },
+            healer: { name: "Victor Magtanggol", hp: 110, atk: 12, description: "High health, support role" },
+            rogue: { name: "WanPakMan", hp: 90, atk: 20, description: "Medium health, high damage" }
         };
         this.selectedCharacter = null;
     }

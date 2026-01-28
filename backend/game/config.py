@@ -6,11 +6,11 @@ ENEMY_STATS = {
 }
 
 CHARACTERS = {
-    "warrior": {"hp": 120, "atk": 15, "class": "warrior"},
-    "mage": {"hp": 80, "atk": 25, "class": "mage"},
-    "archer": {"hp": 100, "atk": 18, "class": "archer"},
-    "healer": {"hp": 110, "atk": 12, "class": "healer"},
-    "rogue": {"hp": 90, "atk": 20, "class": "rogue"},
+    "Volta": {"hp": 120, "atk": 15, "class": "warrior"},
+    "Pedro Penduko": {"hp": 80, "atk": 25, "class": "mage"},
+    "Kidlat": {"hp": 100, "atk": 18, "class": "archer"},
+    "Victor Magtanggol": {"hp": 110, "atk": 12, "class": "healer"},
+    "WanPakMan": {"hp": 90, "atk": 20, "class": "rogue"},
 }
 
 # Skills configuration - 3 skills per character with one heal/buff
