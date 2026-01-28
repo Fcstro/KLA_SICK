@@ -11,6 +11,45 @@ class GamePage {
         this.enemyModel = null;
         this.animationMixer = null;
         this.enemyAnimations = {};
+        
+        // Game State
+        this.gameState = {
+            playerId: null,
+            player: null,
+            enemy: null,
+            inCombat: false,
+            lastLocation: null,
+            characterClass: null
+        };
+        
+        // Character Abilities
+        this.characterAbilities = {
+            warrior: {
+                attack: 'Power Strike',
+                skill: 'Shield Bash',
+                heal: 'Battle Heal'
+            },
+            mage: {
+                attack: 'Fireball',
+                skill: 'Arcane Missiles',
+                heal: 'Mana Shield'
+            },
+            archer: {
+                attack: 'Precise Shot',
+                skill: 'Rain of Arrows',
+                heal: 'Nature\'s Heal'
+            },
+            healer: {
+                attack: 'Holy Light',
+                skill: 'Divine Blessing',
+                heal: 'Greater Heal'
+            },
+            rogue: {
+                attack: 'Backstab',
+                skill: 'Poison Blade',
+                heal: 'Shadow Mend'
+            }
+        };
     }
 
     async render() {
@@ -18,16 +57,18 @@ class GamePage {
         app.innerHTML = `
             <div class="game-container">
                 <div class="game-header">
+                    <div class="game-title">Klasick</div>
                     <div class="player-info">
                         <div class="player-stats">
+                            <div class="hp-container">
+                                <div class="hp-bar">
+                                    <div class="hp-fill" id="playerHpFill" style="width: 100%"></div>
+                                </div>
+                                <div class="hp-text" id="playerHpText">100/100</div>
+                            </div>
                             <span class="level">Level: <span id="player-level">1</span></span>
                             <span class="xp">XP: <span id="player-xp">0</span></span>
-                        </div>
-                        <div class="player-health-container">
-                            <div class="health-bar player-health-bar">
-                                <div class="health-fill player-health-fill" style="width: 100%"></div>
-                            </div>
-                            <span class="health-text player-health-text">HP: --/--</span>
+                            <span class="kills">Kills: <span id="player-kills">0</span></span>
                         </div>
                     </div>
                     <button class="btn-back" onclick="window.router.navigate('/')">← Back</button>
@@ -36,17 +77,28 @@ class GamePage {
                 <div class="ar-container">
                     <video id="cam" autoplay playsinline></video>
                     <div class="game-overlay">
-                        <div id="enemy-container" class="enemy-container">
+                        <div id="enemy-container" class="enemy-container" style="display: none;">
+                            <div class="enemy-info">
+                                <div class="enemy-icon" id="enemyIcon">👹</div>
+                                <div class="enemy-name" id="enemyName">Goblin</div>
+                                <div class="enemy-health-bar">
+                                    <div class="enemy-health-fill" id="enemyHealthFill" style="width: 100%"></div>
+                                </div>
+                                <div id="enemyStats">HP: 30/30</div>
+                            </div>
                             <div id="enemy-3d-container" class="enemy-3d-container"></div>
                         </div>
                         <div id="game-log" class="game-log"></div>
+                        <div id="messageArea" class="message-overlay"></div>
                     </div>
                 </div>
 
                 <div class="game-controls">
-                    <div id="combat-controls" class="combat-controls" style="display: none;">
-                        <button class="btn-attack" onclick="gamePage.attack('enemy')">⚔️ Attack</button>
-                        <button class="btn-heal" onclick="gamePage.heal()">💚 Heal</button>
+                    <div id="actionButtons" class="action-buttons">
+                        <button class="action-button" id="attackBtn" onclick="gamePage.playerAttack()">Attack</button>
+                        <button class="action-button" id="skillBtn" onclick="gamePage.useSkill()">Skill</button>
+                        <button class="action-button" id="healBtn" onclick="gamePage.heal()">Heal</button>
+                        <button class="action-button" id="escapeBtn" onclick="gamePage.escape()">Escape</button>
                     </div>
                     <div id="status-message" class="status-message">
                         📍 Move around to find enemies...
@@ -56,6 +108,7 @@ class GamePage {
                         <button class="btn-debug" onclick="gamePage.spawnGoblin()">👹 Spawn Goblin</button>
                         <button class="btn-debug" onclick="gamePage.spawnOrc()">👺 Spawn Orc</button>
                         <button class="btn-debug" onclick="gamePage.spawnTestEnemy()">🐉 Spawn Dragon</button>
+                        <button class="btn-debug" onclick="gamePage.forceLocationUpdate()">📍 Force Location Update</button>
                     </div>
                 </div>
             </div>
@@ -65,10 +118,36 @@ class GamePage {
     }
 
     async initializeGame() {
+        // Load player data from localStorage
+        this.loadPlayerData();
         await this.setupCamera();
         this.setupLocationTracking();
         this.setupThreeJS();
-        await this.loadPlayerData();
+        this.updateStats();
+        this.updateAbilityButtons();
+        this.showMessage('Game loaded! Start moving to find enemies.', 'success');
+    }
+
+    loadPlayerData() {
+        try {
+            const playerData = localStorage.getItem('playerData');
+            if (playerData) {
+                const data = JSON.parse(playerData);
+                this.gameState.playerId = data.playerId;
+                this.gameState.player = data.player;
+                this.gameState.characterClass = data.characterClass;
+                console.log('Player data loaded:', this.gameState);
+            } else {
+                console.error('No player data found!');
+                this.showMessage('No player data found. Please select a character first.', 'error');
+                setTimeout(() => {
+                    window.router.navigate('/character');
+                }, 2000);
+            }
+        } catch (error) {
+            console.error('Error loading player data:', error);
+            this.showMessage('Error loading player data.', 'error');
+        }
     }
 
     async setupCamera() {
@@ -360,13 +439,23 @@ class GamePage {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     lat: position.coords.latitude,
-                    lon: position.coords.longitude
+                    lon: position.coords.longitude,
+                    player_id: this.gameState.playerId
                 })
             });
             
             const data = await response.json();
+            console.log('Location update response:', data);
+            
             if (data.spawn) {
+                console.log('Enemy spawned!', data);
+                this.gameState.enemy = data.enemy_stats;
+                this.gameState.inCombat = true;
+                this.showEnemy(data.enemy_stats);
+                this.showMessage(`Enemy encountered: ${data.enemy}!`, 'success');
                 this.spawnEnemy(data.enemy, data.enemy_stats);
+            } else {
+                console.log('No enemy spawned, distance traveled:', data.distance_traveled);
             }
         } catch (error) {
             console.error('Error updating location:', error);
@@ -376,7 +465,7 @@ class GamePage {
     async spawnEnemy(enemyType, enemyStats = null) {
         this.currentEnemy = enemyType;
         const enemyContainer = document.getElementById('enemy-container');
-        const combatControls = document.getElementById('combat-controls');
+        const actionButtons = document.getElementById('actionButtons');
         const statusMessage = document.getElementById('status-message');
         
         // Clear previous enemy
@@ -695,7 +784,7 @@ class GamePage {
         }
     }
 
-    async loadPlayerData() {
+    async loadLeaderboardData() {
         try {
             const response = await fetch('/leaderboard');
             const data = await response.json();
@@ -811,6 +900,292 @@ class GamePage {
         
         console.log(`👺 DEBUG: Spawning Orc - HP: ${enemyStats.hp}/${enemyStats.max_hp}`);
         this.spawnEnemy(enemyType, enemyStats);
+    }
+
+    async forceLocationUpdate() {
+        // Simulate a location update with some movement
+        const mockPosition = {
+            coords: {
+                latitude: 37.7749 + (Math.random() - 0.5) * 0.01, // Random lat around San Francisco
+                longitude: -122.4194 + (Math.random() - 0.5) * 0.01 // Random lon around San Francisco
+            }
+        };
+        
+        this.showMessage('🔄 Forcing location update...', 'success');
+        await this.handleLocationUpdate(mockPosition);
+    }
+
+    // Skill System Methods
+    async playerAttack() {
+        if (!this.gameState.inCombat) {
+            this.showMessage('No enemy to attack!', 'error');
+            return;
+        }
+        
+        if (!this.gameState.characterClass) {
+            this.showMessage('No character selected!', 'error');
+            return;
+        }
+        
+        const abilities = this.characterAbilities[this.gameState.characterClass];
+        const skillName = abilities.attack;
+        
+        try {
+            const response = await fetch('/use-skill', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    skill_name: skillName,
+                    player_id: this.gameState.playerId 
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                this.showMessage(data.error, 'error');
+                return;
+            }
+            
+            // Display combat messages
+            if (data.combat_messages && data.combat_messages.length > 0) {
+                data.combat_messages.forEach(msg => this.showMessage(msg, 'success'));
+            }
+            
+            // Handle enemy defeat
+            if (data.enemy_defeated) {
+                this.gameState.enemy = null;
+                this.gameState.inCombat = false;
+                document.getElementById('enemy-container').style.display = 'none';
+                document.getElementById('actionButtons').classList.remove('show');
+                if (data.xp_gained) {
+                    this.showMessage(`Enemy defeated! +${data.xp_gained} XP`, 'success');
+                }
+                this.updateStats();
+                return;
+            }
+            
+            // Update enemy health if damaged but not defeated
+            if (data.damage !== undefined) {
+                this.updateEnemyHealth();
+            }
+            
+            // Update player stats if counter-attacked
+            if (data.player_hp !== undefined) {
+                this.gameState.player.current_hp = data.player_hp;
+                this.updateStats();
+                
+                if (data.player_defeated) {
+                    this.showMessage('You have been defeated!', 'error');
+                    this.gameState.inCombat = false;
+                }
+            }
+            
+        } catch (error) {
+            console.error('Attack error:', error);
+            this.showMessage('Attack failed', 'error');
+        }
+    }
+
+    async useSkill() {
+        if (!this.gameState.inCombat) {
+            this.showMessage('No enemy to use skill on!', 'error');
+            return;
+        }
+        
+        if (!this.gameState.characterClass) {
+            this.showMessage('No character selected!', 'error');
+            return;
+        }
+        
+        const abilities = this.characterAbilities[this.gameState.characterClass];
+        const skillName = abilities.skill;
+        
+        try {
+            const response = await fetch('/use-skill', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    skill_name: skillName,
+                    player_id: this.gameState.playerId 
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                this.showMessage(data.error, 'error');
+                return;
+            }
+            
+            // Display combat messages
+            if (data.combat_messages && data.combat_messages.length > 0) {
+                data.combat_messages.forEach(msg => this.showMessage(msg, 'success'));
+            }
+            
+            // Handle escape
+            if (data.escaped) {
+                this.gameState.enemy = null;
+                this.gameState.inCombat = false;
+                document.getElementById('enemy-container').style.display = 'none';
+                document.getElementById('actionButtons').classList.remove('show');
+                return;
+            }
+            
+            // Handle enemy defeat
+            if (data.enemy_defeated) {
+                this.gameState.enemy = null;
+                this.gameState.inCombat = false;
+                document.getElementById('enemy-container').style.display = 'none';
+                document.getElementById('actionButtons').classList.remove('show');
+                if (data.xp_gained) {
+                    this.showMessage(`Enemy defeated! +${data.xp_gained} XP`, 'success');
+                }
+                this.updateStats();
+                return;
+            }
+            
+            // Update enemy health if damaged but not defeated
+            if (data.damage !== undefined) {
+                this.updateEnemyHealth();
+            }
+            
+            // Update player stats if counter-attacked
+            if (data.player_hp !== undefined) {
+                this.gameState.player.current_hp = data.player_hp;
+                this.updateStats();
+                
+                if (data.player_defeated) {
+                    this.showMessage('You have been defeated!', 'error');
+                    this.gameState.inCombat = false;
+                }
+            }
+            
+        } catch (error) {
+            console.error('Skill error:', error);
+            this.showMessage('Skill failed', 'error');
+        }
+    }
+
+    async heal() {
+        if (!this.gameState.characterClass) {
+            this.showMessage('No character selected!', 'error');
+            return;
+        }
+        
+        const abilities = this.characterAbilities[this.gameState.characterClass];
+        const skillName = abilities.heal;
+        
+        try {
+            const response = await fetch('/use-skill', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    skill_name: skillName,
+                    player_id: this.gameState.playerId 
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                this.showMessage(data.error, 'error');
+                return;
+            }
+            
+            // Display combat messages
+            if (data.combat_messages && data.combat_messages.length > 0) {
+                data.combat_messages.forEach(msg => this.showMessage(msg, 'success'));
+            }
+            
+            // Update player stats if healed
+            if (data.healed !== undefined) {
+                this.gameState.player.current_hp = data.current_hp;
+                this.updateStats();
+                this.showMessage(`Healed ${data.healed} HP!`, 'success');
+            }
+            
+        } catch (error) {
+            console.error('Heal error:', error);
+            this.showMessage('Heal failed', 'error');
+        }
+    }
+
+    async escape() {
+        if (!this.gameState.inCombat) {
+            this.showMessage('No combat to escape from!', 'error');
+            return;
+        }
+        
+        this.gameState.enemy = null;
+        this.gameState.inCombat = false;
+        document.getElementById('enemy-container').style.display = 'none';
+        document.getElementById('actionButtons').classList.remove('show');
+        this.showMessage('Escaped from combat!', 'success');
+    }
+
+    // Helper Methods
+    showMessage(text, type = 'info') {
+        const messageArea = document.getElementById('messageArea');
+        messageArea.innerHTML = `<div class="message ${type}">${text}</div>`;
+        
+        setTimeout(() => {
+            messageArea.innerHTML = '';
+        }, 3000);
+    }
+
+    updateStats() {
+        if (!this.gameState.player) return;
+        
+        const hpPercent = (this.gameState.player.current_hp / this.gameState.player.max_hp) * 100;
+        document.getElementById('playerHpFill').style.width = hpPercent + '%';
+        document.getElementById('playerHpText').textContent = 
+            `${this.gameState.player.current_hp}/${this.gameState.player.max_hp}`;
+        
+        document.getElementById('player-level').textContent = this.gameState.player.level;
+        document.getElementById('player-xp').textContent = this.gameState.player.xp;
+        
+        const totalKills = Object.values(this.gameState.player.kills).reduce((a, b) => a + b, 0);
+        document.getElementById('player-kills').textContent = totalKills;
+    }
+
+    updateEnemyHealth() {
+        if (!this.gameState.enemy) return;
+        
+        const healthPercent = (this.gameState.enemy.hp / this.gameState.enemy.max_hp) * 100;
+        document.getElementById('enemyHealthFill').style.width = healthPercent + '%';
+        document.getElementById('enemyStats').textContent = 
+            `HP: ${this.gameState.enemy.hp}/${this.gameState.enemy.max_hp}`;
+    }
+
+    showEnemy(enemy) {
+        const enemyContainer = document.getElementById('enemy-container');
+        const actionButtons = document.getElementById('actionButtons');
+        
+        enemyContainer.style.display = 'block';
+        actionButtons.classList.add('show');
+        
+        document.getElementById('enemyIcon').textContent = 
+            enemy.type === 'class1' ? '👹' : 
+            enemy.type === 'class2' ? '👺' : '🐉';
+        document.getElementById('enemyName').textContent = enemy.name;
+        
+        this.updateEnemyHealth();
+    }
+
+    updateAbilityButtons() {
+        if (!this.gameState.characterClass) return;
+        
+        const abilities = this.characterAbilities[this.gameState.characterClass];
+        document.getElementById('attackBtn').textContent = abilities.attack;
+        document.getElementById('skillBtn').textContent = abilities.skill;
+        document.getElementById('healBtn').textContent = abilities.heal;
     }
 
     cleanup() {

@@ -80,6 +80,12 @@ class CharacterSelection {
             
             const data = await response.json();
             if (data.status === 'ok') {
+                // Store player data for GamePage to use
+                localStorage.setItem('playerData', JSON.stringify({
+                    playerId: data.player_id,
+                    player: data.player,
+                    characterClass: this.selectedCharacter
+                }));
                 window.router.navigate('/game');
             }
         } catch (error) {

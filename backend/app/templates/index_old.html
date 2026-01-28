@@ -15,5 +15,23 @@
     <script src="/static/js/components/GamePage.js"></script>
     <script src="/static/js/router.js"></script>
     <script src="/static/js/game.js"></script>
+            document.getElementById('kills').textContent = totalKills;
+        }
+
+        // Show Message
+        function showMessage(text, type = 'info') {
+            const messageArea = document.getElementById('messageArea');
+            messageArea.innerHTML = `<div class="message ${type}">${text}</div>`;
+            
+            setTimeout(() => {
+                messageArea.innerHTML = '';
+            }, 3000);
+        }
+
+        // Initialize
+        window.onload = function() {
+            showMessage('Welcome to AR RPG Adventure!', 'success');
+        };
+    </script>
 </body>
 </html>
