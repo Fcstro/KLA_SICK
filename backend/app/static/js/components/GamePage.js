@@ -58,68 +58,10 @@ class GamePage {
             <div class="game-container">
                 <div class="game-header">
                     <div class="game-title">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 900 220"
-                          width="100%"
-                          height="auto"
-                          class="game-logo-small"
-                        >
-                          <defs>
-                            <linearGradient id="textGradient" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stop-color="#f9dc8f"/>
-                              <stop offset="35%" stop-color="#e1b64b"/>
-                              <stop offset="36%" stop-color="#2a62c9"/>
-                              <stop offset="100%" stop-color="#123a7a"/>
-                            </linearGradient>
-                            <linearGradient id="shineGradient" x1="0" y1="0" x2="1" y2="0">
-                              <stop offset="0%" stop-color="rgba(255,255,255,0)"/>
-                              <stop offset="50%" stop-color="rgba(255,255,255,0.6)"/>
-                              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-                            </linearGradient>
-                            <filter id="shadow">
-                              <feDropShadow dx="6" dy="6" stdDeviation="4" flood-color="#0b2f66"/>
-                            </filter>
-                            <style>
-                              .float { animation: float 4s ease-in-out infinite; }
-                              @keyframes float {
-                                0%,100% { transform: translateY(0); }
-                                50% { transform: translateY(-6px); }
-                              }
-                              .shine { animation: shine 3s linear infinite; }
-                              @keyframes shine {
-                                from { transform: translateX(-300px); }
-                                to { transform: translateX(300px); }
-                              }
-                            </style>
-                          </defs>
-                          <g class="float" filter="url(#shadow)">
-                            <text x="80" y="150"
-                              font-size="120"
-                              font-weight="900"
-                              font-family="Impact, Arial Black, sans-serif"
-                              fill="url(#textGradient)"
-                              stroke="#caa24a"
-                              stroke-width="4"
-                              transform="skewX(-8)">
-                              KLA
-                            </text>
-                            <text x="430" y="150"
-                              font-size="120"
-                              font-weight="900"
-                              font-family="Impact, Arial Black, sans-serif"
-                              fill="url(#textGradient)"
-                              stroke="#caa24a"
-                              stroke-width="4"
-                              transform="skewX(8)">
-                              SICK
-                            </text>
-                          </g>
-                          <rect x="-300" y="40" width="300" height="160"
-                            fill="url(#shineGradient)"
-                            class="shine"
-                            opacity="0.6"/>
-                        </svg>
+                        <div class="logo">
+                            <span class="word left">KLA</span>
+                            <span class="word right">SICK</span>
+                        </div>
                     </div>
                     <div class="player-stats">
                         <div class="hp-container">
@@ -170,7 +112,12 @@ class GamePage {
                     <div class="debug-modal-content">
                         <div class="debug-modal-header">
                             <h3>Debug Controls</h3>
-                            <button class="debug-close" onclick="gamePage.toggleDebugModal()">×</button>
+                            <button class="debug-close" onclick="gamePage.closeDebugModal()">×</button>
+                        </div>
+                        <div class="debug-info">
+                            <p><small>💡 <strong>Desktop:</strong> Press <kbd>Ctrl+D</kbd> to toggle • Press <kbd>ESC</kbd> to close</small></p>
+                            <p><small>📱 <strong>Mobile:</strong> Double-tap header • Long-press ⚙️ • Swipe down from top</small></p>
+                            <p><small>🖱️ <strong>All:</strong> Click outside to close • Tap ⚙️ button</small></p>
                         </div>
                         <div class="debug-controls">
                             <button class="btn-debug" onclick="gamePage.forceLocationUpdate()">Force Location Update</button>
@@ -196,7 +143,122 @@ class GamePage {
         this.setupThreeJS();
         this.updateStats();
         this.updateAbilityButtons();
+        this.setupDebugModal();
         this.showMessage('Game loaded! Start moving to find enemies.', 'success');
+    }
+
+    setupDebugModal() {
+        // Add keyboard shortcut (Ctrl+D or Cmd+D)
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+                e.preventDefault();
+                this.toggleDebugModal();
+            }
+            if (e.key === 'Escape') {
+                this.closeDebugModal();
+            }
+        });
+
+        // Add click outside to close
+        const modal = document.getElementById('debugModal');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    this.closeDebugModal();
+                }
+            });
+        }
+
+        // Add mobile touch gestures
+        this.setupMobileDebugAccess();
+    }
+
+    setupMobileDebugAccess() {
+        // Add double-tap gesture to open debug modal on mobile
+        let tapCount = 0;
+        let tapTimeout;
+        
+        document.addEventListener('touchstart', (e) => {
+            // Only detect taps on game header area
+            const gameHeader = document.querySelector('.game-header');
+            if (gameHeader && gameHeader.contains(e.target)) {
+                tapCount++;
+                
+                if (tapCount === 1) {
+                    tapTimeout = setTimeout(() => {
+                        tapCount = 0;
+                    }, 300);
+                } else if (tapCount === 2) {
+                    clearTimeout(tapTimeout);
+                    tapCount = 0;
+                    this.toggleDebugModal();
+                    this.showMessage('🔧 Debug menu opened! Double-tap header again to close.', 'success');
+                }
+            }
+        });
+
+        // Add long press gesture (3 seconds) on settings button
+        const debugToggle = document.querySelector('.debug-toggle');
+        if (debugToggle) {
+            let pressTimer;
+            
+            debugToggle.addEventListener('touchstart', (e) => {
+                pressTimer = setTimeout(() => {
+                    this.showMessage('🔧 Debug menu opened! Press ESC or tap outside to close.', 'success');
+                    this.toggleDebugModal();
+                }, 2000); // 2 second long press
+            });
+            
+            debugToggle.addEventListener('touchend', (e) => {
+                clearTimeout(pressTimer);
+            });
+        }
+
+        // Add swipe down gesture from top of screen
+        let touchStartY = 0;
+        let touchStartX = 0;
+        
+        document.addEventListener('touchstart', (e) => {
+            // Only detect swipes at top 20% of screen
+            if (e.touches[0].clientY < window.innerHeight * 0.2) {
+                touchStartY = e.touches[0].clientY;
+                touchStartX = e.touches[0].clientX;
+            }
+        });
+        
+        document.addEventListener('touchend', (e) => {
+            if (touchStartY === 0) return;
+            
+            const touchEndY = e.changedTouches[0].clientY;
+            const touchEndX = e.changedTouches[0].clientX;
+            const deltaY = touchEndY - touchStartY;
+            const deltaX = Math.abs(touchEndX - touchStartX);
+            
+            // Swipe down gesture (minimum 50px down, less than 50px horizontal movement)
+            if (deltaY > 50 && deltaX < 50) {
+                this.toggleDebugModal();
+                this.showMessage('🔧 Debug menu opened! Swipe down again to close.', 'success');
+            }
+            
+            touchStartY = 0;
+            touchStartX = 0;
+        });
+    }
+
+    toggleDebugModal() {
+        const modal = document.getElementById('debugModal');
+        if (modal.style.display === 'none') {
+            modal.style.display = 'flex';
+            console.log('🔧 Debug modal opened (Press ESC or click outside to close)');
+        } else {
+            this.closeDebugModal();
+        }
+    }
+
+    closeDebugModal() {
+        const modal = document.getElementById('debugModal');
+        modal.style.display = 'none';
+        console.log('🔧 Debug modal closed');
     }
 
     loadPlayerData() {
