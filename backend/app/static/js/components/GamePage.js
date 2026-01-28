@@ -82,7 +82,6 @@ class GamePage {
                     </div>
                     <div class="stat-item level">Level: <span id="level">1</span></div>
                     <div class="stat-item xp">XP: <span id="xp">0</span></div>
-                    <div class="stat-item kills">Kills: <span id="kills">0</span></div>
                 </div>
                 
                 <button class="btn-back" onclick="window.router.navigate('/')">← Back</button>
@@ -1799,14 +1798,9 @@ class GamePage {
         
         const levelElement = document.getElementById('level');
         const xpElement = document.getElementById('xp');
-        const killsElement = document.getElementById('kills');
         
         if (levelElement) levelElement.textContent = this.gameState.player.level;
         if (xpElement) xpElement.textContent = this.gameState.player.xp;
-        
-        const totalKills = this.gameState.player.kills ? 
-            Object.values(this.gameState.player.kills).reduce((a, b) => a + b, 0) : 0;
-        if (killsElement) killsElement.textContent = totalKills;
     }
 
     updateEnemyHealth() {

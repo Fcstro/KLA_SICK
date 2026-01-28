@@ -61,6 +61,18 @@ LEVEL_UP_REWARDS = {
 }
 
 # Game balance settings
+SPAWN_CONFIG = {
+    "spawn_distance": 2,  # meters - minimum distance to trigger spawn check
+    "spawn_probability": 1,  # 100% chance when distance threshold met
+    "enemy_weights": {
+        "class1": 0.5,  # 50% chance for Goblin
+        "class2": 0.3,  # 30% chance for Orc  
+        "class3": 0.2   # 20% chance for Dragon
+    },
+    "max_enemies_per_area": 3,
+    "spawn_cooldown": 10  # seconds between spawns
+}
+
 SPAWN_DISTANCE_THRESHOLD = 1  # meters
 MIN_TRAVEL_DISTANCE = 5  # meters for guaranteed spawn chance (increased even more)
 SPAWN_RATE = 1  # 100% chance
