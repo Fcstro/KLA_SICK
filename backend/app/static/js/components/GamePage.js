@@ -139,6 +139,9 @@ class GamePage {
             </div>
         `;
 
+        // Add class to prevent scrolling during gameplay
+        document.body.classList.add('game-page-body');
+        
         this.initializeGame();
     }
 
@@ -1800,6 +1803,9 @@ class GamePage {
     }
 
     cleanup() {
+        // Remove scroll prevention class
+        document.body.classList.remove('game-page-body');
+        
         // Clear location watcher
         if (this.locationWatcher) {
             navigator.geolocation.clearWatch(this.locationWatcher);
