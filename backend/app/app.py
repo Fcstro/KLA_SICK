@@ -88,7 +88,7 @@ def get_characters():
     return jsonify(CHARACTERS)
 
 @app.route("/config/skills", methods=["GET"])
-def get_skills():
+def get_skills_config():
     """Serve skills configuration"""
     return jsonify(SKILLS)
 
@@ -114,6 +114,7 @@ def get_game_constants():
 def select_character():
     try:
         data = request.get_json()
+        print(f"🎮 Received character selection data: {data}")
         character_class = data["character"]
         player_id = get_or_create_player_id(data)
         
@@ -132,8 +133,10 @@ def select_character():
             }
         })
     except ValueError as e:
+        print(f"❌ ValueError in select-character: {e}")
         return jsonify({"error": str(e)}), 400
     except Exception as e:
+        print(f"❌ Exception in select-character: {e}")
         return jsonify({"error": "Internal server error"}), 500
 
 @app.route("/update-location", methods=["POST"])
