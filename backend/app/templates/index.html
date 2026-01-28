@@ -104,65 +104,90 @@
         
         .game-area {
             display: none;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
         }
         
-        .stats {
-            background: rgba(255,255,255,0.1);
+        .game-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.8);
+            padding: 10px;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .player-stats {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .hp-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .hp-bar {
+            width: 150px;
+            height: 20px;
+            background: rgba(255,0,0,0.3);
             border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
+            overflow: hidden;
+            border: 2px solid #FFD700;
+        }
+        
+        .hp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FF6B6B, #FF8E8E);
+            transition: width 0.5s ease;
+        }
+        
+        .hp-text {
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
         }
         
         .stat-item {
-            text-align: center;
-        }
-        
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            margin-bottom: 5px;
-        }
-        
-        .stat-value {
-            font-size: 1.5rem;
+            color: white;
+            font-size: 14px;
             font-weight: bold;
         }
         
         .camera-container {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
         }
         
         #camera {
             width: 100%;
-            max-width: 400px;
-            height: 300px;
-            background: #000;
-            border-radius: 10px;
-            margin: 0 auto;
-            display: block;
-        }
-        
-        .location-info {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
+            height: 100%;
+            object-fit: cover;
         }
         
         .enemy-info {
-            background: rgba(255,0,0,0.2);
-            border-radius: 10px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,0,0,0.9);
+            border-radius: 15px;
             padding: 20px;
-            margin-bottom: 20px;
             text-align: center;
+            z-index: 5;
             display: none;
+            min-width: 200px;
         }
         
         .enemy-icon {
@@ -170,37 +195,42 @@
             margin-bottom: 10px;
         }
         
-        .health-bar {
+        .enemy-health-bar {
             width: 100%;
-            height: 20px;
+            height: 15px;
             background: rgba(0,0,0,0.3);
             border-radius: 10px;
             overflow: hidden;
             margin: 10px 0;
         }
         
-        .health-fill {
+        .enemy-health-fill {
             height: 100%;
             background: linear-gradient(90deg, #FF6B6B, #FF8E8E);
             transition: width 0.5s ease;
         }
         
-        .actions {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-            margin-top: 20px;
+        .action-buttons {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 10;
         }
         
         .action-button {
             background: linear-gradient(45deg, #FF6B6B, #FF8E8E);
             color: white;
             border: none;
-            padding: 15px;
-            border-radius: 10px;
+            padding: 15px 20px;
+            border-radius: 25px;
             cursor: pointer;
             font-weight: bold;
             transition: all 0.3s ease;
+            font-size: 14px;
+            min-width: 100px;
         }
         
         .action-button:hover {
@@ -210,6 +240,15 @@
         .action-button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+        }
+        
+        .message-overlay {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 15;
+            max-width: 300px;
         }
         
         .message {
@@ -277,57 +316,46 @@
         
         <!-- Game Area -->
         <div id="gameArea" class="game-area">
-            <div class="stats">
-                <div class="stat-item">
-                    <div class="stat-label">Level</div>
-                    <div class="stat-value" id="level">1</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">HP</div>
-                    <div class="stat-value" id="hp">100/100</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">XP</div>
-                    <div class="stat-value" id="xp">0</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">Kills</div>
-                    <div class="stat-value" id="kills">0</div>
+            <!-- Game Header with Stats -->
+            <div class="game-header">
+                <div class="player-stats">
+                    <div class="hp-container">
+                        <div class="hp-bar">
+                            <div class="hp-fill" id="playerHpFill" style="width: 100%"></div>
+                        </div>
+                        <div class="hp-text" id="playerHpText">100/100</div>
+                    </div>
+                    <div class="stat-item">Level: <span id="level">1</span></div>
+                    <div class="stat-item">XP: <span id="xp">0</span></div>
+                    <div class="stat-item">Kills: <span id="kills">0</span></div>
                 </div>
             </div>
             
+            <!-- Full Screen Camera -->
             <div class="camera-container">
-                <h3>📷 AR Camera View</h3>
                 <video id="camera" autoplay playsinline></video>
-                <div class="message">
-                    Camera will show AR view with enemies
-                </div>
             </div>
             
-            <div class="location-info">
-                <h3>📍 Location Status</h3>
-                <p id="locationStatus">Getting location...</p>
-                <p id="distanceInfo">Distance traveled: 0m</p>
-            </div>
-            
+            <!-- Enemy Info (Centered) -->
             <div id="enemyInfo" class="enemy-info">
-                <h3>⚔️ Enemy Encountered!</h3>
                 <div class="enemy-icon" id="enemyIcon">👹</div>
                 <div class="enemy-name" id="enemyName">Goblin</div>
-                <div class="health-bar">
-                    <div class="health-fill" id="enemyHealth" style="width: 100%"></div>
+                <div class="enemy-health-bar">
+                    <div class="enemy-health-fill" id="enemyHealthFill" style="width: 100%"></div>
                 </div>
                 <div id="enemyStats">HP: 30/30</div>
             </div>
             
-            <div class="actions">
-                <button class="action-button" onclick="playerAttack()" id="attackBtn">⚔️ Attack</button>
-                <button class="action-button" onclick="useSkill()" id="skillBtn">✨ Use Skill</button>
-                <button class="action-button" onclick="heal()" id="healBtn">💚 Heal</button>
-                <button class="action-button" onclick="escape()" id="escapeBtn">🏃 Escape</button>
+            <!-- Action Buttons (Bottom) -->
+            <div class="action-buttons">
+                <button class="action-button" id="attackBtn" onclick="playerAttack()">Attack</button>
+                <button class="action-button" id="skillBtn" onclick="useSkill()">Skill</button>
+                <button class="action-button" id="healBtn" onclick="heal()">Heal</button>
+                <button class="action-button" id="escapeBtn" onclick="escape()">Escape</button>
             </div>
             
-            <div id="messageArea"></div>
+            <!-- Message Overlay -->
+            <div id="messageArea" class="message-overlay"></div>
         </div>
     </div>
 
@@ -339,7 +367,37 @@
             enemy: null,
             inCombat: false,
             lastLocation: null,
-            cameraStream: null
+            cameraStream: null,
+            characterClass: null
+        };
+
+        // Character Abilities
+        const characterAbilities = {
+            warrior: {
+                attack: 'Power Strike',
+                skill: 'Shield Bash',
+                heal: 'Battle Heal'
+            },
+            mage: {
+                attack: 'Fireball',
+                skill: 'Arcane Missiles',
+                heal: 'Mana Shield'
+            },
+            archer: {
+                attack: 'Precise Shot',
+                skill: 'Rain of Arrows',
+                heal: 'Nature\'s Heal'
+            },
+            healer: {
+                attack: 'Holy Light',
+                skill: 'Divine Blessing',
+                heal: 'Greater Heal'
+            },
+            rogue: {
+                attack: 'Backstab',
+                skill: 'Poison Blade',
+                heal: 'Shadow Mend'
+            }
         };
 
         // Start Game
@@ -363,7 +421,6 @@
             } catch (error) {
                 console.error('Camera error:', error);
                 showMessage('Camera access denied or not available', 'error');
-                // Fallback: show placeholder
                 document.getElementById('camera').style.display = 'none';
             }
         }
@@ -384,10 +441,14 @@
                 if (data.status === 'ok') {
                     gameState.playerId = data.player_id;
                     gameState.player = data.player;
+                    gameState.characterClass = characterClass;
                     
                     // Update UI
                     document.getElementById('characterSelection').style.display = 'none';
                     document.getElementById('gameArea').style.display = 'block';
+                    
+                    // Update button labels with character-specific abilities
+                    updateAbilityButtons();
                     
                     updateStats();
                     startLocationTracking();
@@ -408,19 +469,38 @@
                 return;
             }
 
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    showMessage('Location access granted!', 'success');
+                    watchPosition();
+                },
+                (error) => {
+                    if (error.code === error.PERMISSION_DENIED) {
+                        showMessage('Location permission denied. Please enable location access.', 'error');
+                    } else {
+                        showMessage('Location access failed', 'error');
+                    }
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        // Watch position for continuous updates
+        function watchPosition() {
             navigator.geolocation.watchPosition(
                 async (position) => {
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
                     
                     updateLocationStatus(lat, lon);
-                    
-                    // Send location to server
                     await updateLocation(lat, lon);
                 },
                 (error) => {
-                    console.error('Location error:', error);
-                    showMessage('Location access denied', 'error');
+                    console.error('Location watch error:', error);
                 },
                 {
                     enableHighAccuracy: true,
@@ -430,19 +510,24 @@
             );
         }
 
+        // Update Ability Buttons
+        function updateAbilityButtons() {
+            if (!gameState.characterClass) return;
+            
+            const abilities = characterAbilities[gameState.characterClass];
+            document.getElementById('attackBtn').textContent = abilities.attack;
+            document.getElementById('skillBtn').textContent = abilities.skill;
+            document.getElementById('healBtn').textContent = abilities.heal;
+        }
+
         // Update Location Status
         function updateLocationStatus(lat, lon) {
-            const locationStatus = document.getElementById('locationStatus');
-            locationStatus.textContent = `Location: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-            
             if (gameState.lastLocation) {
                 const distance = calculateDistance(
                     gameState.lastLocation.lat, 
                     gameState.lastLocation.lon,
                     lat, lon
                 );
-                document.getElementById('distanceInfo').textContent = 
-                    `Distance traveled: ${distance.toFixed(1)}m`;
             }
             
             gameState.lastLocation = { lat, lon };
@@ -478,7 +563,6 @@
                 const data = await response.json();
                 
                 if (data.spawn) {
-                    // Enemy spawned!
                     gameState.enemy = data.enemy_stats;
                     gameState.inCombat = true;
                     showEnemy(data.enemy_stats);
@@ -486,7 +570,6 @@
                 }
             } catch (error) {
                 console.error('Location update error:', error);
-                // Don't show error for location updates to avoid spam
             }
         }
 
@@ -508,9 +591,27 @@
             if (!gameState.enemy) return;
             
             const healthPercent = (gameState.enemy.hp / gameState.enemy.max_hp) * 100;
-            document.getElementById('enemyHealth').style.width = healthPercent + '%';
+            document.getElementById('enemyHealthFill').style.width = healthPercent + '%';
             document.getElementById('enemyStats').textContent = 
                 `HP: ${gameState.enemy.hp}/${gameState.enemy.max_hp}`;
+        }
+
+        // Update Stats
+        function updateStats() {
+            if (!gameState.player) return;
+            
+            // Update HP bar and text
+            const hpPercent = (gameState.player.current_hp / gameState.player.max_hp) * 100;
+            document.getElementById('playerHpFill').style.width = hpPercent + '%';
+            document.getElementById('playerHpText').textContent = 
+                `${gameState.player.current_hp}/${gameState.player.max_hp}`;
+            
+            // Update other stats
+            document.getElementById('level').textContent = gameState.player.level;
+            document.getElementById('xp').textContent = gameState.player.xp;
+            
+            const totalKills = Object.values(gameState.player.kills).reduce((a, b) => a + b, 0);
+            document.getElementById('kills').textContent = totalKills;
         }
 
         // Player Attack
@@ -595,9 +696,12 @@
         function updateStats() {
             if (!gameState.player) return;
             
-            document.getElementById('level').textContent = gameState.player.level;
-            document.getElementById('hp').textContent = 
+            const hpPercent = (gameState.player.current_hp / gameState.player.max_hp) * 100;
+            document.getElementById('playerHpFill').style.width = hpPercent + '%';
+            document.getElementById('playerHpText').textContent = 
                 `${gameState.player.current_hp}/${gameState.player.max_hp}`;
+            
+            document.getElementById('level').textContent = gameState.player.level;
             document.getElementById('xp').textContent = gameState.player.xp;
             
             const totalKills = Object.values(gameState.player.kills).reduce((a, b) => a + b, 0);
@@ -609,13 +713,12 @@
             const messageArea = document.getElementById('messageArea');
             messageArea.innerHTML = `<div class="message ${type}">${text}</div>`;
             
-            // Auto-hide after 3 seconds
             setTimeout(() => {
                 messageArea.innerHTML = '';
             }, 3000);
         }
 
-        // Initialize on load
+        // Initialize
         window.onload = function() {
             showMessage('Welcome to AR RPG Adventure!', 'success');
         };
