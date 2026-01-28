@@ -1778,19 +1778,16 @@ class GamePage {
     }
 
     handleCombatTurnResult(data) {
-        // Update enemy health if damaged
-        if (data.player_attack && data.player_attack.damage !== undefined) {
-            // Update enemy state with new HP
-            if (this.gameState.enemy && data.enemy_stats) {
-                this.gameState.enemy.hp = data.enemy_stats.hp;
-            }
+        // Update enemy health if we got enemy_hp back (player dealt damage)
+        if (this.gameState.enemy && typeof data.enemy_hp === 'number') {
+            this.gameState.enemy.hp = data.enemy_hp;
             this.updateEnemyHealth();
             // Play enemy hit animation
             this.playEnemyAnimation('hit');
         }
         
-        // Update player health if damaged
-        if (data.enemy_attack && data.enemy_attack.damage !== undefined) {
+        // Update player health if enemy attacked
+        if (data.enemy_attack && data.enemy_attack.damage !== undefined && typeof data.player_hp === 'number') {
             this.gameState.player.current_hp = data.player_hp;
             this.updateStats();
             
