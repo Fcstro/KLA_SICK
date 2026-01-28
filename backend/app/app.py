@@ -33,7 +33,7 @@ def get_local_ip():
 app = Flask(__name__)
 # Restrict CORS to specific origins for security
 CORS(app, resources={
-    r"/*": {"origins": ["http://localhost:5173", "http://localhost:3000"]}
+    r"/*": {"origins": ["http://localhost:5173", "http://localhost:3000", "https://*.onrender.com"]}
 })
 
 # Rate limiting
@@ -680,8 +680,4 @@ def player_status():
         return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == "__main__":
-    # HTTPS required for camera access in modern browsers
-    import ssl
-    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-    context.load_default_certs()
-    app.run(host="0.0.0.0", port=5000, debug=False, ssl_context=context)
+    app.run(host="0.0.0.0", port=5000, debug=False)
