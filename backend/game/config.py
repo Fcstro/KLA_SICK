@@ -5,6 +5,20 @@ ENEMY_STATS = {
     "class3": {"hp": 100, "atk": 15, "name": "Dragon", "xp_reward": 50}
 }
 
+# Enemy spawning configuration based on location
+SPAWN_CONFIG = {
+    "spawn_distance": 2,  # Distance in meters to trigger spawn
+    "spawn_probability": 100,  # 100% chance to spawn when moving required distance
+    "enemy_weights": {
+        "class1": 0.6,  # 60% chance for Goblin
+        "class2": 0.3,  # 30% chance for Orc  
+        "class3": 0.1   # 10% chance for Dragon
+    },
+    "max_enemies_per_area": 4,  # Maximum enemies in same area
+    "spawn_cooldown": 10,  # Seconds between spawns in same area
+    "area_radius": 1  # Radius in meters to define an "area"
+}
+
 CHARACTERS = {
     "warrior": {"hp": 120, "atk": 15, "class": "warrior"},
     "mage": {"hp": 80, "atk": 25, "class": "mage"},

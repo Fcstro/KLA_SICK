@@ -307,8 +307,7 @@ class GamePage {
                 pos => this.handleLocationUpdate(pos),
                 err => {
                     console.log("Location access denied:", err);
-                    // Start automatic spawning if location is denied
-                    this.startAutoSpawning();
+                    // Don't start auto-spawning by default - user needs to enable location
                 },
                 { 
                     enableHighAccuracy: true,
@@ -316,33 +315,25 @@ class GamePage {
                     timeout: 5000
                 }
             );
-            
-            // Also start auto-spawning as backup
-            this.startAutoSpawning();
         } else {
             console.log("Geolocation not available");
-            // Start automatic spawning if geolocation is not available
-            this.startAutoSpawning();
         }
     }
 
     startAutoSpawning() {
-        // Auto-spawn enemies every 10-20 seconds for testing
-        const spawnInterval = () => {
+        // Auto-spawn enemies when location changes (movement-based spawning)
+        const spawnOnMovement = () => {
             if (!this.gameState.inCombat) {
                 const enemyTypes = ['class1', 'class2', 'class3'];
                 const randomEnemy = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
                 this.spawnTestEnemy(randomEnemy);
+                console.log(`🎮 Enemy spawned due to movement: ${randomEnemy}`);
             }
-            
-            // Schedule next spawn
-            const nextSpawnTime = 10000 + Math.random() * 10000; // 10-20 seconds
-            this.spawnTimer = setTimeout(spawnInterval, nextSpawnTime);
         };
         
-        // Start first spawn after 5 seconds
-        this.spawnTimer = setTimeout(spawnInterval, 5000);
-        console.log('🎮 Auto-spawning enabled - enemies will spawn every 10-20 seconds');
+        // Store this as a method that can be called when location changes
+        this.spawnOnMovement = spawnOnMovement;
+        console.log('🎮 Movement-based spawning enabled - enemies will spawn when you move!');
     }
 
     setupThreeJS() {
@@ -615,17 +606,20 @@ class GamePage {
             console.log('Location update response:', data);
             
             if (data.spawn) {
-                console.log('Enemy spawned!', data);
+                console.log('Enemy spawned from location config!', data);
                 this.gameState.enemy = data.enemy_stats;
                 this.gameState.inCombat = true;
                 this.showEnemy(data.enemy_stats);
                 this.showMessage(`Enemy encountered: ${data.enemy}!`, 'success');
                 this.spawnEnemy(data.enemy, data.enemy_stats);
             } else {
-                console.log('No enemy spawned, distance traveled:', data.distance_traveled);
+                console.log('No enemy spawned based on config, distance traveled:', data.distance_traveled);
+                // Don't spawn locally - let config control everything
             }
         } catch (error) {
             console.error('Error updating location:', error);
+            // Don't spawn locally if backend fails - let user use debug modal
+            this.showMessage('Location tracking error. Use debug modal to spawn enemies.', 'error');
         }
     }
 

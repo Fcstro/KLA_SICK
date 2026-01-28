@@ -106,54 +106,86 @@ def select_character():
         return jsonify({"error": "Internal server error"}), 500
 
 @app.route("/update-location", methods=["POST"])
-@limiter.limit("60 per minute")
+@validate_json_data(["lat", "lon", "player_id"])
 def update_location():
     try:
         data = request.get_json()
-        if not data:
-            return jsonify({"error": "Invalid JSON data"}), 400
-            
-        # Validate required fields
-        if "lat" not in data or "lon" not in data:
-            return jsonify({"error": "Missing required fields: lat, lon"}), 400
-            
-        player_id = get_or_create_player_id(data)
-        lat, lon = float(data["lat"]), float(data["lon"])
+        lat = data["lat"]
+        lon = data["lon"]
+        player_id = data["player_id"]
         
-        # Get or create player
+        from game.config import SPAWN_CONFIG, ENEMY_STATS
+        from game.spawn import calculate_distance, should_spawn_enemy, get_enemy_type_by_weight, check_area_limits, spawn_enemy
+        
         player = player_manager.get_player(player_id)
         if not player:
-            return jsonify({"error": "Player not found. Please select a character first."}), 400
+            return jsonify({"error": "Player not found"}), 400
         
-        # Update location and get distance traveled
-        location_result = player_manager.update_location(player_id, lat, lon)
-        distance_traveled = location_result["distance_traveled"]
+        # Calculate distance moved
+        last_location = player.get('last_location')
+        distance_traveled = 0
+        should_spawn = False
+        spawn_reason = ""
         
-        # Check for enemy spawn using AR system
-        enemy = check_ar_enemy_spawn(player, distance_traveled)
-        
-        if enemy:
-            # Start combat
-            combat_system.start_combat(player_id, enemy)
-            player_manager.reset_spawn_tracking(player_id)
+        if last_location:
+            distance_traveled = calculate_distance(
+                last_location['lat'], last_location['lon'],
+                lat, lon
+            )
             
-            response_data = {
-                "spawn": True,
-                "enemy": enemy["type"],
-                "enemy_stats": enemy,
-                "distance_traveled": distance_traveled
-            }
-            
-            # Add AR-specific information if available
-            if enemy.get("spawn_source") == "ar_poi" and "location" in enemy:
-                response_data["ar_location"] = enemy["location"]
-            
-            return jsonify(response_data)
+            # Check if should spawn based on config distance
+            if distance_traveled >= SPAWN_CONFIG["spawn_distance"]:
+                should_spawn = should_spawn_enemy(SPAWN_CONFIG["spawn_probability"])
+                if not should_spawn:
+                    spawn_reason = "Probability check failed"
+        else:
+            # First location update, don't spawn immediately
+            should_spawn = False
+            spawn_reason = "First location update"
         
-        return jsonify({
-            "spawn": False,
-            "distance_traveled": distance_traveled
-        })
+        # Update player's last location
+        player['last_location'] = {'lat': lat, 'lon': lon}
+        
+        if should_spawn and not combat_system.get_combat(player_id):
+            # Get all existing enemies in combat to check area limits
+            existing_enemies = []
+            for combat_id, combat_data in combat_system.combats.items():
+                if combat_data.get('player_id') == player_id:
+                    enemy = combat_data.get('enemy')
+                    if enemy:
+                        existing_enemies.append(enemy)
+            
+            # Check area limits and cooldowns
+            player_location = {'lat': lat, 'lon': lon}
+            can_spawn, reason = check_area_limits(player_location, existing_enemies, SPAWN_CONFIG)
+            
+            if can_spawn:
+                # Get enemy type based on weights from config
+                enemy_type = get_enemy_type_by_weight(SPAWN_CONFIG["enemy_weights"])
+                enemy = spawn_enemy(enemy_type, player_location)
+                combat_system.start_combat(player_id, enemy)
+                
+                return jsonify({
+                    "spawn": True,
+                    "enemy": enemy_type,
+                    "enemy_stats": enemy,
+                    "distance_traveled": distance_traveled,
+                    "spawn_reason": "Config-based spawn successful"
+                })
+            else:
+                return jsonify({
+                    "spawn": False,
+                    "distance_traveled": distance_traveled,
+                    "spawn_reason": reason,
+                    "config_used": SPAWN_CONFIG
+                })
+        else:
+            return jsonify({
+                "spawn": False,
+                "distance_traveled": distance_traveled,
+                "spawn_reason": spawn_reason or f"Distance threshold not met ({SPAWN_CONFIG['spawn_distance']}m required)",
+                "config_used": SPAWN_CONFIG
+            })
         
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
