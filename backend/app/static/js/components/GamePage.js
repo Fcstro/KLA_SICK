@@ -1151,8 +1151,6 @@ class GamePage {
         // Load 3D enemy model first
         this.enemyModel = await this.load3DEnemyModel(enemyType);
         if (this.enemyModel && this.threeScene) {
-            // Center the enemy model in front of the camera
-            // Position enemy in the center of the screen
             this.enemyModel.position.set(-7, 0, -8);
             
             // Try different rotation to face forward - remove or adjust
