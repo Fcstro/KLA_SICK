@@ -358,8 +358,8 @@ body.game-page-body {
 }
 
 .character-icon-img {
-    width: 7rem;
-    height: 7rem;
+    width: 15rem;
+    height: 15rem;
     object-fit: contain;
     margin-bottom: 15px;
     filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); 
