@@ -31,9 +31,9 @@ SKILLS = {
         {"name": "Perfect Storm", "heal_amount": 35, "cooldown": 12, "description": "Restore 35 HP", "type": "heal"}
     ],
     "Victor Magtanggol": [
-        {"name": "aldenkantotmaine", "damage": 25, "cooldown": 10, "description": "Holy damage attack", "type": "damage"},
-        {"name": "ALDUB 4Ever", "heal_amount": 60, "cooldown": 15, "description": "Restore 60 HP", "type": "heal"},
-        {"name": "Pabebe Wave", "damage_boost": 1.5, "duration": 4, "cooldown": 25, "description": "Increase damage by 50% for 4 turns", "type": "buff"}
+        {"name": "tamang Panahon", "damage": 25, "cooldown": 10, "description": "Holy damage attack", "type": "damage"},
+        {"name": "Pabebe Wave", "damage_boost": 1.5, "duration": 4, "cooldown": 25, "description": "Increase damage by 50% for 4 turns", "type": "buff"},
+        {"name": "ALDUB 4Ever", "heal_amount": 60, "cooldown": 15, "description": "Restore 60 HP", "type": "heal"}
     ],
     "WaPakMan": [
         {"name": "Asim Kilig", "damage_multiplier": 3.0, "cooldown": 15, "description": "Critical strike from behind", "type": "damage"},
