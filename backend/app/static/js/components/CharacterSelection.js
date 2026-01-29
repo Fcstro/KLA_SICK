@@ -60,7 +60,7 @@ getCharacterIcon(characterType) {
         "Volta": '<img src="/static/icons/volta.png" alt="Volta" class="character-icon-img">',
         "Pedro Penduko": '<img src="/static/icons/pedro.png" alt="Pedro Penduko" class="character-icon-img">',
         "Kidlat": '<img src="/static/icons/kidlat.png" alt="Kidlat" class="character-icon-img">',
-        "Victor Magtanggol": '<img src="/static/icons/victor.png" alt="Victor Magtanggol" class="character-icon-img">',
+        "Victor Magtanggol": '<img src="/static/icons/viktor.png" alt="Victor Magtanggol" class="character-icon-img">',
         "WaPakMan": '<img src="/static/icons/wapakman.png" alt="WaPakMan" class="character-icon-img">'
     };
     return icons[characterType] || '👤';

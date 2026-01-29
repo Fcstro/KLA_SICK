@@ -357,6 +357,14 @@ body.game-page-body {
     box-shadow: 0 15px 40px rgba(255,215,0,0.4);
 }
 
+.character-icon-img {
+    width: 4rem;
+    height: 4rem;
+    object-fit: contain;
+    margin-bottom: 15px;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+}
+
 .character-icon {
     font-size: 4rem;
     margin-bottom: 15px;
