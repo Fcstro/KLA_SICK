@@ -944,7 +944,7 @@ class GamePage {
                     } else if (enemyType === 'class2') {   // Orc - biggest
                         scale = 12;
                     } else if (enemyType === 'class3') {   // Dragon - medium
-                        scale = 9;
+                        scale = 6;
                     }
                     
                     model.scale.set(scale, scale, scale);
@@ -1002,7 +1002,7 @@ class GamePage {
                     } else if (enemyType === 'class2') { // Orc - big - much larger
                         size = 18;
                     } else if (enemyType === 'class3') { // Dragon - large
-                        size = 15;
+                        size = 12;
                     }
                     
                     // Create a plane geometry with the texture
@@ -1152,8 +1152,8 @@ class GamePage {
         this.enemyModel = await this.load3DEnemyModel(enemyType);
         if (this.enemyModel && this.threeScene) {
             // Center the enemy model in front of the camera
-            // Stronger left offset so it's fully visible on most screens
-            this.enemyModel.position.set(-2.0, 0, -8);
+            // Position enemy in the center of the screen
+            this.enemyModel.position.set(0.0, 0, -8);
             
             // Add AR integration effects
             this.addAREffects(enemyType);
