@@ -10,7 +10,7 @@ CHARACTERS = {
     "Pedro Penduko": {"hp": 80, "atk": 25, "class": "mage"},
     "Kidlat": {"hp": 100, "atk": 18, "class": "archer"},
     "Victor Magtanggol": {"hp": 110, "atk": 12, "class": "healer"},
-    "WanPakMan": {"hp": 90, "atk": 20, "class": "rogue"},
+    "WaPakMan": {"hp": 90, "atk": 20, "class": "rogue"},
 }
 
 # Skills configuration - 3 skills per character with one heal/buff
@@ -35,7 +35,7 @@ SKILLS = {
         {"name": "ALDUB 4Ever", "heal_amount": 60, "cooldown": 15, "description": "Restore 60 HP", "type": "heal"},
         {"name": "Pabebe Wave", "damage_boost": 1.5, "duration": 4, "cooldown": 25, "description": "Increase damage by 50% for 4 turns", "type": "buff"}
     ],
-    "WanPakMan": [
+    "WaPakMan": [
         {"name": "Asim Kilig", "damage_multiplier": 3.0, "cooldown": 15, "description": "Critical strike from behind", "type": "damage"},
         {"name": "Figthing Senator", "damage": 20, "poison_damage": 5, "duration": 3, "cooldown": 12, "description": "Attack with poison damage over 3 turns", "type": "damage"},
         {"name": "Go Manny", "heal_amount": 30, "cooldown": 10, "description": "Restore 30 HP", "type": "heal"}

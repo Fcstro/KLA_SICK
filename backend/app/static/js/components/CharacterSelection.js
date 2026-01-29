@@ -6,7 +6,7 @@ class CharacterSelection {
             "Pedro Penduko": { name: "Pedro Penduko", hp: 80, atk: 25, description: "Low health, high damage" },
             "Kidlat": { name: "Kidlat", hp: 100, atk: 18, description: "Balanced stats" },
             "Victor Magtanggol": { name: "Victor Magtanggol", hp: 110, atk: 12, description: "High health, support role" },
-            "WanPakMan": { name: "WanPakMan", hp: 90, atk: 20, description: "Medium health, high damage" }
+            "WaPakMan": { name: "WaPakMan", hp: 90, atk: 20, description: "Medium health, high damage" }
         };
         this.selectedCharacter = null;
     }
@@ -61,7 +61,7 @@ class CharacterSelection {
             "Pedro Penduko": '🔮',
             "Kidlat": '🏹',
             "Victor Magtanggol": '💚',
-            "WanPakMan": '🗡️'
+            "WaPakMan": '🗡️'
         };
         return icons[characterType] || '👤';
     }
