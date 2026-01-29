@@ -947,14 +947,17 @@ class GamePage {
                         scale = 6;
                     }
                     
-                        // Set specific rotations for each enemy type based on their model orientation
-                    if (enemyType === 'class1') {          // Goblin - no rotation needed
-                        model.rotation.y = 0;
-                    } else if (enemyType === 'class2') {   // Orc - needs 180 degrees to face forward
-                        model.rotation.y = Math.PI;
-                    } else if (enemyType === 'class3') {   // Dragon - needs 90 degrees to face forward
-                        model.rotation.y = Math.PI / 2;
+                    model.scale.set(scale, scale, scale);
+                    model.position.set(0, 0, 0);
+                    
+                    // Fix orientation for different enemy models
+                    // Orc (class2) faces forward correctly, but goblin and dragon need rotation
+                    if (enemyType === 'class1') {          // Goblin - faces backward, needs 180° rotation
+                        model.rotation.y = -Math.PI;
+                    } else if (enemyType === 'class3') {   // Dragon - faces backward, needs 180° rotation
+                        model.rotation.y = -Math.PI;
                     }
+                    // Orc (class2) faces forward correctly, no rotation needed
                     
                     model.castShadow = true;
                     model.receiveShadow = true;
