@@ -1153,7 +1153,10 @@ class GamePage {
         if (this.enemyModel && this.threeScene) {
             // Center the enemy model in front of the camera
             // Position enemy in the center of the screen
-            this.enemyModel.position.set(10.0, 0, -8);
+            this.enemyModel.position.set(0, 0, -8);
+            
+            // Rotate enemy to face the camera (forward)
+            this.enemyModel.rotation.y = Math.PI;
             
             // Add AR integration effects
             this.addAREffects(enemyType);
