@@ -64,22 +64,19 @@ class PlayerManager:
         }
     
     def heal_player(self, player_id: str) -> Dict[str, Any]:
-        """Heal player with cooldown check"""
+        """Heal player without cooldown check"""
         player = self.get_player(player_id)
         if not player:
             raise ValueError(f"Player {player_id} not found")
         
-        current_time = time.time()
-        if current_time - player["last_heal"] < HEAL_COOLDOWN:
+        heal_amount = min(HEAL_AMOUNT, player["max_hp"] - player["current_hp"])
+        if heal_amount <= 0:
             return {
                 "success": False,
-                "error": "Heal on cooldown",
-                "remaining_cooldown": HEAL_COOLDOWN - (current_time - player["last_heal"])
+                "error": "Already at full health"
             }
         
-        heal_amount = min(HEAL_AMOUNT, player["max_hp"] - player["current_hp"])
         player["current_hp"] += heal_amount
-        player["last_heal"] = current_time
         
         return {
             "success": True,
@@ -282,21 +279,14 @@ class PlayerManager:
             player["skill_cooldowns"][skill_name] = time.time() + cooldown
     
     def is_skill_ready(self, player_id: str, skill_name: str) -> bool:
-        """Check if skill is ready to use"""
-        player = self.get_player(player_id)
-        if not player or skill_name not in player["skill_cooldowns"]:
-            return True
-        
-        return time.time() >= player["skill_cooldowns"][skill_name]
+        """Check if skill is ready to use - always returns True (no cooldowns)"""
+        # Cooldowns removed - skills are always ready
+        return True
     
     def get_skill_remaining_cooldown(self, player_id: str, skill_name: str) -> float:
-        """Get remaining cooldown for a skill"""
-        player = self.get_player(player_id)
-        if not player or skill_name not in player["skill_cooldowns"]:
-            return 0
-        
-        remaining = player["skill_cooldowns"][skill_name] - time.time()
-        return max(0, remaining)
+        """Get remaining cooldown for a skill - always returns 0 (no cooldowns)"""
+        # Cooldowns removed - always return 0
+        return 0
 
 # Global player manager instance
 player_manager = PlayerManager()

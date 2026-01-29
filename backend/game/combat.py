@@ -109,16 +109,16 @@ class CombatSystem:
                 "error": "Skill not found for this character class"
             }
         
-        # Check cooldown
-        if not player_manager.is_skill_ready(player["id"], skill_name):
-            remaining = player_manager.get_skill_remaining_cooldown(player["id"], skill_name)
-            return {
-                "success": False,
-                "error": f"Skill on cooldown: {remaining:.1f}s remaining"
-            }
+        # Cooldown check removed - skills can be used anytime
+        # if not player_manager.is_skill_ready(player["id"], skill_name):
+        #     remaining = player_manager.get_skill_remaining_cooldown(player["id"], skill_name)
+        #     return {
+        #         "success": False,
+        #         "error": f"Skill on cooldown: {remaining:.1f}s remaining"
+        #     }
         
-        # Set cooldown
-        player_manager.update_skill_cooldown(player["id"], skill_name, skill["cooldown"])
+        # Cooldown setting removed - skills can be used anytime
+        # player_manager.update_skill_cooldown(player["id"], skill_name, skill["cooldown"])
         
         # Initialize result
         result = {
