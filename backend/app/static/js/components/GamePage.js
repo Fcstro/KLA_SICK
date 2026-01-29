@@ -950,8 +950,14 @@ class GamePage {
                     model.scale.set(scale, scale, scale);
                     model.position.set(0, 0, 0);
                     
-                    // Enemies face forward by default based on their model orientation
-                    // model.rotation.y = Math.PI;
+                    // Fix orientation for different enemy models
+                    // Orc (class2) faces forward correctly, but goblin and dragon need rotation
+                    if (enemyType === 'class1') {          // Goblin - faces backward, needs 180° rotation
+                        model.rotation.y = Math.PI;
+                    } else if (enemyType === 'class3') {   // Dragon - faces backward, needs 180° rotation
+                        model.rotation.y = Math.PI;
+                    }
+                    // Orc (class2) faces forward correctly, no rotation needed
                     
                     model.castShadow = true;
                     model.receiveShadow = true;
