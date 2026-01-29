@@ -950,8 +950,8 @@ class GamePage {
                     model.scale.set(scale, scale, scale);
                     model.position.set(0, 0, 0);
                     
-                    // Rotate enemies to face forward
-                    model.rotation.y = Math.PI;
+                    // Enemies face forward by default based on their model orientation
+                    // model.rotation.y = Math.PI;
                     
                     model.castShadow = true;
                     model.receiveShadow = true;
@@ -1153,8 +1153,8 @@ class GamePage {
         if (this.enemyModel && this.threeScene) {
             this.enemyModel.position.set(-7, 0, -8);
             
-            // Rotate enemy to face forward
-            this.enemyModel.rotation.y = Math.PI;
+            // Enemy faces forward by default
+            // this.enemyModel.rotation.y = Math.PI;
             
             // Add AR integration effects
             this.addAREffects(enemyType);
