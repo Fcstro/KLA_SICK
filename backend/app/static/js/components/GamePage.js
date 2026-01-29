@@ -952,10 +952,14 @@ class GamePage {
                     
                     // Fix orientation for different enemy models
                     // Orc (class2) faces forward correctly, but goblin and dragon need rotation
-                    if (enemyType === 'class1') {          // Goblin - faces backward, needs 180° rotation
-                        model.rotation.y = Math.PI;
-                    } else if (enemyType === 'class3') {   // Dragon - faces backward, needs 180° rotation
-                        model.rotation.y = Math.PI;
+                    if (enemyType === 'class1') {          // Goblin - faces backward, needs Z-axis rotation
+                        model.rotation.z = Math.PI;
+                        console.log(`🔄 DEBUG: Applied 180° Z-axis rotation to Goblin`);
+                    } else if (enemyType === 'class3') {   // Dragon - faces backward, needs Z-axis rotation
+                        model.rotation.z = Math.PI;
+                        console.log(`🔄 DEBUG: Applied 180° Z-axis rotation to Dragon`);
+                    } else if (enemyType === 'class2') {
+                        console.log(`🔄 DEBUG: No rotation applied to Orc (faces forward correctly)`);
                     }
                     // Orc (class2) faces forward correctly, no rotation needed
                     
